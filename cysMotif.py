@@ -52,14 +52,17 @@ def findICK(fa_dict,json=True):
 #spider_knottin_fa = fa2dict("test/SPIDER.knottin.fa")
 # spider_knottin_pd = findICK(spider_knottin_fa,json=False)
 
-try:
-    input_file = "test/P.nigriventer.ick.fa" # replace with sys input
-except:
-    input_file = sys.argv[1]
-    
+# try:
+#     input_file = "test/P.nigriventer.ick.fa" # replace with sys input
+# except:
+#     input_file = sys.argv[1]
+
 json_out = True # replace with sys input
 
-input_fa = fa2dict(input_file)
+try:
+    input_fa = fa2dict("test/P.nigriventer.ick.fa")
+except:
+    input_fa = fa2dict(sys.argv[1])
 if json_out:
     input_dict = findICK(input_fa)
     for cys_num in input_dict:
