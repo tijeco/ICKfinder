@@ -73,7 +73,7 @@ if json_out:
             general_pattern = general_pattern.replace("--","-")
 
             for header in input_dict[cys_num][pattern]:
-                print(header,general_pattern,pattern)
+                print(header+","+general_pattern+","+pattern)
 
 else:
     input_pd = findICK(input_fa,json=False)
