@@ -25,7 +25,7 @@ def findICK(fa_dict,json=True):
     for header in fa_dict:
         seq = fa_dict[header]
         cys_count = seq.count("C")
-        if cys_count != 0:
+        if cys_count > 2:
             cys_positions = [pos for pos, char in enumerate(seq) if char == "C"]
             cys_pattern = [x - (1+cys_positions[i - 1]) for i, x in enumerate(cys_positions)][1:]
             cys_seqs = [seq[cys_positions[i - 1]+1:x] for i,x in enumerate(cys_positions)][1:]
