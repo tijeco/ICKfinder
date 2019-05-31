@@ -9,11 +9,34 @@ from itertools import groupby
 import argparse
 import json
 
+import src
 import src.create as cr
+import src.classify as cl
 # import src/create as cr
 # import toxify.fifteenmer as fm
 # import toxify.protfactor as pf
 # import toxify.seq2window as sw
+def str2bool(v):
+    if isinstance(v, bool):
+       return v
+    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected.')
+def fa2dict(fa):
+    fasta_dict = {}
+    with open(fa) as f:
+        header = ""
+        for line in f:
+            if line.strip() != '':
+                if line[0] == ">":
+                    header = line.strip().strip(">")
+                    fasta_dict[header] = ""
+                else:
+                    fasta_dict[header] += line.strip()
+    return fasta_dict
 
 class ParseCommands(object):
 
@@ -51,6 +74,29 @@ The most commonly used cluck commands are:
         self.args = args
         return(self.args)
 
+    def classify(self):
+        parser = argparse.ArgumentParser(
+            description="Provides annotation of cysteine motifs in dataset")
+        parser.add_argument('fasta')
+        parser.add_argument("-motif", type=str2bool, nargs='?',
+                        const=True, default=True,
+                        help="Activate nice mode.")
+        parser.add_argument('-out',type = str,default = "cluck.csv")
+        args = parser.parse_args(sys.argv[2:])
+
+        self.args = args
+        print("Running cluck classify",self.args.fasta)
+        fasta_file = self.args.fasta
+        fasta_dict = fa2dict(fasta_file)
+        cluck_json = os.path.abspath(src.__file__).replace("__init__.py","cluck.json")
+
+        fasta_annotate = cl.annotateFastaDict(fasta_dict,cluck_json,motif=self.args.motif)
+        fasta_annotate.to_csv(self.args.out,index=False)
+        print(self.args.motif)
+        # print(os.path.abspath(src.__file__).replace("__init__.py","models/max_len_50"))
+
+        return(self.args)
+
     def create(self):
         parser = argparse.ArgumentParser(
             description="Creates cysteine motif json file")
@@ -63,7 +109,7 @@ The most commonly used cluck commands are:
         fasta_file = self.args.fasta
         output_json = self.args.json
 
-        faDict = cr.fa2dict(fasta_file)
+        faDict = fa2dict(fasta_file)
         faICK = cr.faDict2json(faDict)
         with open(output_json, 'w') as out:
             json.dump(faICK, out)
