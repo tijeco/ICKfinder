@@ -7,7 +7,10 @@ import os
 import sys
 from itertools import groupby
 import argparse
-# import toxify
+import json
+
+import src.create as cr
+# import src/create as cr
 # import toxify.fifteenmer as fm
 # import toxify.protfactor as pf
 # import toxify.seq2window as sw
@@ -52,9 +55,19 @@ The most commonly used cluck commands are:
         parser = argparse.ArgumentParser(
             description="Creates cysteine motif json file")
         parser.add_argument('fasta')
+        parser.add_argument('-json',type = str,default = "cluck.json")
         args = parser.parse_args(sys.argv[2:])
-        print("Running cluck create")
+
         self.args = args
+        print("Running cluck create",self.args.fasta)
+        fasta_file = self.args.fasta
+        output_json = self.args.json
+
+        faDict = cr.fa2dict(fasta_file)
+        faICK = cr.faDict2json(faDict)
+        with open(output_json, 'w') as out:
+            json.dump(faICK, out)
+
         return(self.args)
 def main():
     cluck_args = ParseCommands().args
