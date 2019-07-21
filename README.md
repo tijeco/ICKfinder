@@ -1,6 +1,8 @@
-# cluck: Command Line Utility for Cysteine Knot toxins
+
 
 ![](https://github.com/tijeco/cluck/raw/master/logo/logo.jpg)
+
+# cluck: Command Line Utility for Cysteine Knot toxins
 
 Usage: cluck <command> [<args>]
 
