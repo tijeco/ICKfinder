@@ -32,7 +32,7 @@ def fa2dict(fa):
         for line in f:
             if line.strip() != '':
                 if line[0] == ">":
-                    header = line.strip().strip(">")
+                    header = line.strip().strip(">").split()[0]
                     fasta_dict[header] = ""
                 else:
                     fasta_dict[header] += line.strip()
