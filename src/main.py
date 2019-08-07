@@ -85,7 +85,7 @@ The most commonly used cluck commands are:
         args = parser.parse_args(sys.argv[2:])
 
         self.args = args
-        print("Running cluck classify",self.args.fasta)
+        print("Running cluck classify:",self.args.fasta)
         fasta_file = self.args.fasta
         fasta_dict = fa2dict(fasta_file)
         cluck_json = os.path.abspath(src.__file__).replace("__init__.py","cluck.json")
