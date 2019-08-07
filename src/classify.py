@@ -35,6 +35,7 @@ def annotateFastaDict(fa_dict, json_file,motif=True):
                         # print(header,general_pattern,hits)
                         out_dict["header"].append(header)
                         out_dict["pattern"].append(general_pattern)
+                        out_dict["Cys_num"].append(cys_count_str)
                         out_dict["hits"].append(hits)
                         # keys = [key for key in json_dict[cys_count_str][general_pattern]]]
                         # hits = ';'.join([key for key in json_dict[cys_count_str][general_pattern]])
@@ -45,6 +46,7 @@ def annotateFastaDict(fa_dict, json_file,motif=True):
                             # print(header,cys_motif,hits)
                             out_dict["header"].append(header)
                             out_dict["pattern"].append(cys_motif)
+                            out_dict["Cys_num"].append(cys_count_str)
                             out_dict["hits"].append(hits)
 
     out_pd = pd.DataFrame.from_dict(out_dict)
