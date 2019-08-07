@@ -3,7 +3,7 @@ import json
 import pandas as pd
 
 def annotateFastaDict(fa_dict, json_file,motif=True):
-    out_dict = {"header":[],"pattern":[],"hits":[]}
+    out_dict = {"header":[],"pattern":[],"Cys_num":[],"hits":[]}
     # print(fa_dict,json_file)
     with open(json_file) as f:
         json_dict = json.load(f)
