@@ -1,10 +1,28 @@
 {
   "6": {
     "C-C-CC-C-C": {
-      "C-6-C-6-C-0-C-4-C-5-C": {
-        "JZT24_CHIJI": ["RGYGLP", "TPEKND", "", "QRLY", "SQHRL"]
+      "C-6-C-5-C-0-C-4-C-8-C": {
+        "PN359.mature": ["TLSQDP", "KSDDE", "", "FGMI", "VRKPRGQI"],
+        "PN360.mature": ["SGQGMP", "ESDDE", "", "FHLS", "MTAFNGGE"]
+      },
+      "C-6-C-5-C-0-C-4-C-11-C": {
+        "PN002.mature": ["APRFRI", "NSDKE", "", "KGLR", "KSRIANMWPTF"],
+        "PN003.mature": ["APRFSI", "NSDKE", "", "KGLR", "KSRIANMWPTF"],
+        "PN131.mature": ["VPPGHH", "YRENE", "", "KGLT", "KGRDRKMRPTF"],
+        "PN132.mature": ["VPPGHH", "YREKE", "", "KGLT", "KGRVPNMRPTF"],
+        "PN062.mature": ["APRGQL", "FSDKQ", "", "KGLR", "KNRVANMWPTF"]
+      },
+      "C-6-C-5-C-0-C-3-C-8-C": {
+        "PN047.mature": ["RSNGQQ", "TSDGQ", "", "YGK", "KTAFMGKI"],
+        "PN048.mature": ["RFNGQQ", "TSDSQ", "", "YGK", "RTTFLSRI"],
+        "PN051.mature": ["RFAGEQ", "TSDGQ", "", "YGK", "KTAFMGKI"],
+        "PN046.mature": ["RFNGQQ", "TSDGQ", "", "YGK", "KTAFMGKI"],
+        "PN045.mature": ["RFTGQQ", "TSDSQ", "", "YGK", "RTTFMRTI"],
+        "PN052.mature": ["RFNGQQ", "TSDSQ", "", "YGK", "RTTFLSRI"],
+        "PN049.mature": ["RFNGQQ", "TSDSQ", "", "YGK", "RTTFLRMI"]
       },
       "C-6-C-5-C-0-C-4-C-9-C": {
+        "PN086.mature": ["PKILKQ", "KSDED", "", "RGWK", "FGFSIKDKM"],
         "JZT52_CHIJI": ["FKEGHS", "PKTAP", "", "RPLV", "KGPSPNTKK"],
         "JZ50B_CHIJI": ["IEEGKW", "PKKAP", "", "GRLE", "KGPSPKQKK"],
         "JZ50A_CHIJI": ["IEEGKW", "PKKAP", "", "GRLE", "KGPSPKQKK"],
@@ -12,6 +30,15 @@
         "K4K943_ARAVE": ["RKRFRT", "NPPAR", "", "PGYK", "IRDGSGILR"],
         "ICK1_TRILK": ["RKFLGG", "ENTGQ", "", "LHLF", "KYDTPFNHF"],
         "TX10A_HAPSC": ["FKEGKW", "PKSAP", "", "APLK", "KGPSIKQQK"]
+      },
+      "C-6-C-4-C-0-C-4-C-8-C": {
+        "PN035.mature": ["AQKGIK", "HDIH", "", "TNLK", "VREGSNRV"]
+      },
+      "C-5-C-5-C-0-C-4-C-8-C": {
+        "PN266.mature": ["IPFKP", "KSDEN", "", "KKLK", "KTTGIVKL"]
+      },
+      "C-6-C-6-C-0-C-4-C-5-C": {
+        "JZT24_CHIJI": ["RGYGLP", "TPEKND", "", "QRLY", "SQHRL"]
       },
       "C-6-C-6-C-0-C-4-C-13-C": {
         "S0F209_HADVE": ["VPVDQP", "SLNTQP", "", "DDAT", "TQERNENGHTVYY"],
@@ -470,69 +497,85 @@
     }
   },
   "8": {
-    "C-C-CC-C-C-C-C": {
-      "C-6-C-5-C-0-C-3-C-6-C-5-C-3-C": {
-        "JZT59_CHIJI": ["SRKTWP", "ETSED", "", "DKN", "SDTFWT", "QLGYG", "SRV"]
+    "C-C-CC-CXC-CXC": {
+      "C-6-C-6-C-0-C-4-C-1-C-6-C-1-C": {
+        "PN208.mature": ["AAVYER", "GKGYKR", "", "EERP", "K", "NIVMDN", "I"],
+        "PN107.mature": ["ADVYER", "GKGYKR", "", "EERP", "K", "NIAMDN", "T"],
+        "PN105.mature": ["AAVYER", "GKGYKR", "", "EERP", "K", "NIVMDN", "T"],
+        "PN007.mature": ["AGLYKK", "GKGASP", "", "EDRP", "K", "DLAMGN", "I"],
+        "S5MYH0_9ARAC": ["RELYES", "SYPSKP", "", "ENRP", "K", "SIFFND", "L"],
+        "S5MJV8_9ARAC": ["AGLYKE", "DAPRLP", "", "DNRV", "K", "SFAYTN", "K"],
+        "S5MK99_9ARAC": ["AGLYKE", "DAPRLP", "", "DNRV", "K", "SFAYTN", "R"],
+        "S5N3V2_9ARAC": ["AGLYKE", "DAPRLP", "", "DNRV", "K", "SFAYTN", "K"],
+        "TX31_PHONI": ["AAVYER", "GKGYKR", "", "EERP", "K", "NIVMDN", "T"],
+        "TX32_PHONI": ["AGLYKK", "GKGASP", "", "EDRP", "K", "DLAMGN", "I"],
+        "TXG01_LYCSI": ["AKEYQW", "DWNTRP", "", "DNIS", "I", "SWIGTN", "E"],
+        "TXI04_LYCSI": ["IKLNQE", "VQNKTP", "", "NNRP", "L", "YMRFNI", "L"]
       },
-      "C-6-C-6-C-0-C-4-C-6-C-3-C-12-C": {
-        "JZT49_CHIJI": ["GLLMDA", "DGKSTF", "", "SGYN", "SPTWKW", "VLD", "PNLFLLPPTKTL"]
+      "C-6-C-6-C-0-C-4-C-1-C-15-C-1-C": {
+        "PN017.mature": ["IKEGKS", "LDNEDG", "", "PLST", "E", "WEQRIPRKSTNWVKR", "Q"],
+        "TLCOG_GEOA2": ["ITWRNS", "MHYDKG", "", "FPWT", "V", "WSQTVSRNSSRKEKK", "Q"],
+        "TLCOB_GEOA2": ["ITWRNS", "MHNDKG", "", "FPWS", "V", "WSQTVSRNSSRKEKK", "Q"],
+        "TLCOA_GEOA2": ["ITWRNS", "MHNDKG", "", "FPWS", "V", "WSQTVSRNSSRKEKK", "Q"],
+        "TLCOD_GEOA2": ["ITWRNS", "MHNDKG", "", "FPWS", "V", "WSQTVPRNSSRKEKK", "Q"],
+        "TLCOC_GEOA2": ["ITWRNS", "MHNDKG", "", "FPWS", "V", "WSQTVSRNSSGKEKK", "Q"]
       },
-      "C-6-C-5-C-0-C-3-C-5-C-6-C-3-C": {
-        "CALA_CALS5": ["ISARYP", "SNSKD", "", "SGN", "GTFWT", "YIRKDP", "SKE"]
-      }
-    },
-    "C-C-C-X-CC-C-C-C": {
-      "C-6-C-3-C-1-C-0-C-5-C-12-C-23-C": {
-        "JZT62_CHIJI": ["IEEWKT", "EHS", "E", "", "GSSTI", "SSTWAEGKEIKL", "KNEGGTFKKVLHFIQKGISKLKS"],
-        "JZT63_CHIJI": ["IEEWKT", "ENS", "E", "", "GSSTI", "SSTWAEGKEIKL", "KNEGGTFKKVLHFIQKGISKLKS"],
-        "H15E1_HAPHA": ["IEEWKT", "END", "E", "", "GMSTL", "AASWVDGHQIKL", "RNEGGKLKKVLHFIQKSVSKIKS"],
-        "H15A1_HAPHA": ["IEEWKT", "END", "E", "", "GMSTL", "AASWVDGHQIKL", "RNEGGKLKKVLHFIQKSVSKIKS"],
-        "H15B1_HAPHA": ["IEEWKT", "END", "E", "", "GMSTL", "AASWVDGHQIKL", "RNVGGKLKKVLHFIQKSVSKIKS"],
-        "H15A2_HAPHA": ["IEEWKT", "END", "E", "", "GMSTL", "AASWVDGHQIKL", "RNEGGKLKKVLHFIQKSVSKIKS"],
-        "H15C1_HAPHA": ["IEEWKT", "END", "E", "", "GMSTL", "AASWVDGHEIKL", "RNEGGKLKKVLHFIQKSVSKIRS"],
-        "H15D1_HAPHA": ["IEEWKT", "END", "E", "", "GMSTL", "AASWVDGHEIKL", "RNEGGKLKKVLHFIQKSVSKIKS"],
-        "B3FIP0_HAPSC": ["IEEWKT", "END", "E", "", "GMSTL", "AASWVDGHQIKL", "RNEGGKLKKVLHFIQKSVSKVKS"]
+      "C-6-C-6-C-0-C-4-C-1-C-18-C-1-C": {
+        "PN171.mature": ["IKHKQD", "MNNQSG", "", "FPWS", "V", "WTQSIYNSHRVVIGSKRQ", "G"],
+        "PN303.mature": ["IKWRDS", "MDNKGG", "", "WPWS", "D", "WTQGTYNRHKVRTGSVRK", "Q"]
       },
-      "C-6-C-3-C-1-C-0-C-5-C-10-C-24-C": {
-        "JZ66B_CHIJI": ["ILKGDH", "HGT", "D", "", "GWTTT", "RKSKSAGGKI", "KSEGSSISAFNAIAKGVAAMKKAK"],
-        "JZ66A_CHIJI": ["ILKGDH", "HGT", "D", "", "GWTTT", "RKSKSAGGKI", "KSEGSSISAFNAIAKGVAAMKKAK"]
+      "C-6-C-6-C-0-C-9-C-1-C-13-C-1-C": {
+        "PN305.mature": ["IPKHHE", "THQKDN", "", "KGHLSLQYK", "R", "YKVINDKGEESKR", "A"]
       },
-      "C-7-C-3-C-1-C-0-C-5-C-12-C-26-C": {
-        "JZT65_CHIJI": ["SKKAGEK", "ESN", "D", "", "GYSTL", "GYITEGKEVKYQ", "MSKTSNNEILNTIGLGMNAIENMFSF"],
-        "JZT64_CHIJI": ["SKKAGEK", "KSN", "D", "", "GYSTL", "GYITEGKEVKYQ", "MSKTSNNKILNTVGLGVNAIENMLSF"],
-        "I2FKH7_GRARO": ["TRQIGQN", "NDN", "D", "", "GSAVV", "GYISVGSKIENL", "MNKTSNNWLLNQVGYVWNAMKNAASM"],
-        "M5AWW2_GRARO": ["TRQIGQN", "TDN", "D", "", "GSAVI", "GYITVGSNIEYL", "MNKTSNNWFLNQVGYVWNAMKNAASM"],
-        "H18A1_HAPHA": ["SKQIGDK", "KRN", "E", "", "GKTVV", "GTIYVGGKEVNQ", "MDKTSDNAILNGLGKGMNFIENTFSF"],
-        "H18C1_HAPHA": ["SKQIGDK", "KRN", "E", "", "RKTVV", "GTIYVGGKEVNQ", "MDKTSDNAILNGLGKGMNFIENTFSF"],
-        "H18E1_HAPHA": ["SKQIGNK", "KRN", "E", "", "GKTVV", "GTIYVGGKEVNQ", "MDKTSDNAILNGLGKGMNFIENTFSF"],
-        "H18G1_HAPHA": ["SKQIGDK", "KRN", "E", "", "GKTVV", "GTIYVGGKEVNQ", "MDKTSDNAILNGLGKGMNFMENTFSF"],
-        "H18A2_HAPHA": ["SKQIGDK", "KRN", "E", "", "GKTVV", "GTIYVGGKEVNQ", "MDKTSDNAILNGLGKGMNFIENTFSF"],
-        "H18F1_HAPHA": ["SKQIGDK", "KRN", "E", "", "GKTVV", "GTIYVGGKEVNQ", "MDKTSDNAILNRLGKGMNFIENTFSF"],
-        "B2ZBB0_HAPSC": ["SKQIGDR", "KSN", "D", "", "GTTVS", "GTIYVGGKEVNQ", "MDKSSDNAVLSGIGKGWNFVKNGFSF"],
-        "B3FIN6_HAPSC": ["SKQIGDR", "KSN", "D", "", "GTTVS", "GTIYVGGKEVNQ", "MDKSSDNAVLNGIGKGWNFVKNGFSF"],
-        "B2ZBB1_HAPSC": ["SKQIGDR", "KSN", "G", "", "GTTVS", "GTIYVGGKEVNQ", "MDKSSDNAVLNGIGKGWNFVKNGFSF"],
-        "B2ZBB2_HAPSC": ["SKQIGDR", "KSN", "D", "", "GTTVS", "GTIYVGGKEVNQ", "MDKSSDNAVLNGIGKGWNFVKNGFSF"],
-        "B2ZBA9_HAPSC": ["SKQIGDR", "KSN", "D", "", "GTTVS", "GTIYVGGKEVNQ", "MDKSSDNAVLNGIGKGWNFVKNGFSF"],
-        "B3FIN7_HAPSC": ["SKQIGDR", "KSN", "D", "", "GTTVT", "GTIYVGGKEVNQ", "MDKSSDNAVLNGIGKGWNFVKNGFSF"],
-        "TX18A_HAPSC": ["SKNPGES", "TNN", "E", "", "GATVV", "ASVYVAGVEKKS", "KSKTSDNGFLNIIGQAANAVQNAASL"]
+      "C-6-C-6-C-0-C-8-C-1-C-17-C-1-C": {
+        "PN098.mature": ["TERNHE", "TDDRHS", "", "RGKLFKDV", "M", "FYPEGGSNDTARANKEL", "T"]
       },
-      "C-10-C-3-C-1-C-0-C-5-C-8-C-28-C": {
-        "TXM12_MACGS": ["IVGSKNIGET", "VAS", "Q", "", "GATVR", "IGEGTKGI", "NNYQTNNILGQILLYAKDTVVNTAGLLV"]
+      "C-6-C-6-C-0-C-4-C-1-C-10-C-1-C": {
+        "PN315.mature": ["FAYGDS", "KSNKNG", "", "WFFT", "K", "WHPFGQKTEW", "K"],
+        "PN087.mature": ["IGHRKS", "IHDRNG", "", "WNMP", "N", "WHPMGQKTEW", "K"]
       },
-      "C-7-C-3-C-1-C-0-C-5-C-12-C-28-C": {
-        "D5J6X8_PELMU": ["SKQIGEK", "EHD", "Q", "", "GATVV", "GTIYVGGNAVEQ", "MSKTSNNAVLNTMGHGMNAVQNAFTSVM"]
-      }
-    },
-    "C-C-CC-X-CC-C-C": {
-      "C-6-C-2-C-0-C-1-C-0-C-4-C-10-C": {
-        "TK1A_HADMO": ["TGADRP", "AA", "", "P", "", "PGTS", "QGPESNXISY"]
+      "C-6-C-6-C-0-C-4-C-1-C-9-C-1-C": {
+        "PN095.mature": ["IGHRRS", "KEDRNG", "", "RLYT", "N", "WYPTPGDQW", "K"],
+        "TX35A_PHONI": ["IGHRRS", "KEDRNG", "", "RLYT", "N", "WYPTPGDQW", "K"]
       },
-      "C-6-C-2-C-0-C-1-C-0-C-4-C-9-C": {
-        "TK1E_HADVE": ["PGADRP", "AA", "", "P", "", "PGTS", "KAESNGVFY"],
-        "S0F1P1_HADVE": ["TGADSP", "AA", "", "P", "", "PGTS", "KAESNGVSY"]
-      }
-    },
-    "C-C-CC-C-X-C-C-X-C": {
+      "C-6-C-4-C-0-C-4-C-1-C-6-C-1-C": {
+        "PN317.mature": ["AEAYQS", "DSLT", "", "NNRT", "M", "SMIGTN", "K"],
+        "S5MFI4_9ARAC": ["AEKGIK", "NDIH", "", "SNLV", "K", "DSSRSN", "V"]
+      },
+      "C-6-C-7-C-0-C-4-C-1-C-13-C-1-C": {
+        "PN292.mature": ["EHLEKR", "DLNSDAK", "", "PGLV", "K", "YFPVINGVKTAKR", "W"],
+        "PN069.mature": ["VHLEKR", "DLNAGDK", "", "PGLV", "K", "YFPVINGEKTAKR", "W"],
+        "PN321.mature": ["VHLEKR", "DLNAGDK", "", "PGLV", "K", "YFPVINGEKTAKR", "W"]
+      },
+      "C-6-C-4-C-0-C-8-C-1-C-6-C-1-C": {
+        "PN323.mature": ["ADAWES", "DNRP", "", "VVKGWKRG", "M", "SLNMRN", "D"],
+        "PN070.mature": ["AQAYKS", "DSKP", "", "VVNGYHRT", "Q", "NWFGSN", "K"],
+        "PN009.mature": ["ADAWES", "DNRP", "", "VVNGWKRG", "M", "SLNKRN", "D"],
+        "PN245.mature": ["AGAWES", "DHRR", "", "VVKGWHRT", "M", "SMNKRN", "D"],
+        "PN272.mature": ["AGAWKS", "DYRP", "", "VVKGWHRT", "M", "SMNKRN", "D"]
+      },
+      "C-6-C-6-C-0-C-4-C-1-C-5-C-1-C": {
+        "PN226.mature": ["TGLYEK", "SYPAKR", "", "RNRP", "I", "NSAAQ", "I"],
+        "PN109.mature": ["ADVYKE", "WYPEKP", "", "KDRA", "Q", "TLGMT", "K"],
+        "TAG3M_AGEOR": ["VGENGH", "RSWYND", "", "DGYY", "S", "MQPPN", "I"],
+        "TX3A_PHONI": ["ADVYKE", "WYPEKP", "", "KDRA", "Q", "TLGMT", "K"],
+        "TAG3L_AGEOR": ["VGENGR", "RDWYND", "", "DGFY", "S", "RQPPY", "I"]
+      },
+      "C-6-C-9-C-0-C-4-C-1-C-13-C-1-C": {
+        "PN147.mature": ["IKLEER", "DLKEGDGTK", "", "EGLA", "K", "YYPHVGGVKGGKR", "W"]
+      },
+      "C-6-C-6-C-0-C-4-C-1-C-12-C-1-C": {
+        "PN326.mature": ["IDEHGY", "KDNFDG", "", "RPYQ", "K", "AKEILFREHVMT", "T"],
+        "PN036.mature": ["IGRNES", "KFDRHG", "", "WPWS", "S", "WNKEGQPESDVW", "E"],
+        "LTX1B_LACTA": ["IPTRHE", "TNNQQN", "", "EGHD", "K", "DYTEIGGAKKEI", "Y"],
+        "LTX1A_LACTA": ["IPTKHD", "TNDRKN", "", "PGHE", "K", "YNTQIGGSKKEQ", "G"],
+        "TX35_PHONI": ["IGRNES", "KFDRHG", "", "WPWS", "S", "WNKEGQPESDVW", "E"]
+      },
+      "C-6-C-5-C-0-C-9-C-1-C-4-C-1-C": {
+        "PN268.mature": ["ADAYKS", "NHPRT", "", "DGYNGYKRA", "I", "SGSN", "K"],
+        "PN056.mature": ["ADAYKS", "NHPRT", "", "DGYNGYKRA", "I", "SGSN", "K"],
+        "TX33A_PHONI": ["ADAYKS", "NHPRT", "", "DGYNGYKRA", "I", "SGSN", "K"]
+      },
       "C-6-C-7-C-0-C-4-C-1-C-5-C-1-C": {
         "JZ54B_CHIJI": ["IERMQT", "EVEAGLP", "", "SGAP", "I", "PYIGD", "I"],
         "JZT55_CHIJI": ["IERMQT", "GVEAGLP", "", "SGAP", "I", "PYIGD", "I"],
@@ -550,37 +593,11 @@
         "TAG3D_AGEOR": ["VGDGQR", "ADWAGPY", "", "SGYY", "S", "RSMPY", "R"],
         "TAG3A_AGEOR": ["AAKNKR", "ADWAGPW", "", "EGLY", "S", "RSYPG", "M"]
       },
-      "C-6-C-4-C-0-C-4-C-1-C-6-C-1-C": {
-        "S5MFI4_9ARAC": ["AEKGIK", "NDIH", "", "SNLV", "K", "DSSRSN", "V"]
-      },
-      "C-6-C-6-C-0-C-4-C-1-C-5-C-1-C": {
-        "TAG3M_AGEOR": ["VGENGH", "RSWYND", "", "DGYY", "S", "MQPPN", "I"],
-        "TX3A_PHONI": ["ADVYKE", "WYPEKP", "", "KDRA", "Q", "TLGMT", "K"],
-        "TAG3L_AGEOR": ["VGENGR", "RDWYND", "", "DGFY", "S", "RQPPY", "I"]
-      },
-      "C-6-C-6-C-0-C-4-C-1-C-6-C-1-C": {
-        "S5MYH0_9ARAC": ["RELYES", "SYPSKP", "", "ENRP", "K", "SIFFND", "L"],
-        "S5MJV8_9ARAC": ["AGLYKE", "DAPRLP", "", "DNRV", "K", "SFAYTN", "K"],
-        "S5MK99_9ARAC": ["AGLYKE", "DAPRLP", "", "DNRV", "K", "SFAYTN", "R"],
-        "S5N3V2_9ARAC": ["AGLYKE", "DAPRLP", "", "DNRV", "K", "SFAYTN", "K"],
-        "TX31_PHONI": ["AAVYER", "GKGYKR", "", "EERP", "K", "NIVMDN", "T"],
-        "TX32_PHONI": ["AGLYKK", "GKGASP", "", "EDRP", "K", "DLAMGN", "I"],
-        "TXG01_LYCSI": ["AKEYQW", "DWNTRP", "", "DNIS", "I", "SWIGTN", "E"],
-        "TXI04_LYCSI": ["IKLNQE", "VQNKTP", "", "NNRP", "L", "YMRFNI", "L"]
-      },
       "C-6-C-7-C-0-C-4-C-1-C-15-C-1-C": {
         "S5N3V5_9ARAC": ["IKWRLS", "GGEDDNS", "", "WPYG", "Q", "WSQTVSKSSSRKVRK", "Q"]
       },
       "C-6-C-8-C-0-C-10-C-1-C-7-C-1-C": {
         "LTX2C_LACTA": ["VPLEND", "TKLKYSNP", "", "KDEKKKYQYK", "S", "IVDKTEQ", "T"]
-      },
-      "C-6-C-6-C-0-C-4-C-1-C-12-C-1-C": {
-        "LTX1B_LACTA": ["IPTRHE", "TNNQQN", "", "EGHD", "K", "DYTEIGGAKKEI", "Y"],
-        "LTX1A_LACTA": ["IPTKHD", "TNDRKN", "", "PGHE", "K", "YNTQIGGSKKEQ", "G"],
-        "TX35_PHONI": ["IGRNES", "KFDRHG", "", "WPWS", "S", "WNKEGQPESDVW", "E"]
-      },
-      "C-6-C-5-C-0-C-9-C-1-C-4-C-1-C": {
-        "TX33A_PHONI": ["ADAYKS", "NHPRT", "", "DGYNGYKRA", "I", "SGSN", "K"]
       },
       "C-6-C-5-C-0-C-4-C-1-C-6-C-1-C": {
         "TXJ05_LYCSI": ["SGAYKR", "SSSQR", "", "EGRP", "V", "SAINSN", "K"],
@@ -762,16 +779,68 @@
         "TX316_LYCSI": ["TPRFYD", "SHDRHS", "", "RSELFKDV", "T", "FYPEGGDNEV", "T"],
         "TX301_LYCSI": ["TPRFYD", "SHDRHS", "", "RSELFKDV", "T", "FYPEGGDNEV", "T"],
         "TXZ10_LYCSI": ["TPRFYD", "SHDRHS", "", "RSELFKDV", "T", "FYPEGGDNEV", "T"]
+      }
+    },
+    "C-C-CC-C-C-C-C": {
+      "C-6-C-5-C-0-C-3-C-6-C-5-C-3-C": {
+        "JZT59_CHIJI": ["SRKTWP", "ETSED", "", "DKN", "SDTFWT", "QLGYG", "SRV"]
       },
-      "C-6-C-6-C-0-C-4-C-1-C-15-C-1-C": {
-        "TLCOG_GEOA2": ["ITWRNS", "MHYDKG", "", "FPWT", "V", "WSQTVSRNSSRKEKK", "Q"],
-        "TLCOB_GEOA2": ["ITWRNS", "MHNDKG", "", "FPWS", "V", "WSQTVSRNSSRKEKK", "Q"],
-        "TLCOA_GEOA2": ["ITWRNS", "MHNDKG", "", "FPWS", "V", "WSQTVSRNSSRKEKK", "Q"],
-        "TLCOD_GEOA2": ["ITWRNS", "MHNDKG", "", "FPWS", "V", "WSQTVPRNSSRKEKK", "Q"],
-        "TLCOC_GEOA2": ["ITWRNS", "MHNDKG", "", "FPWS", "V", "WSQTVSRNSSGKEKK", "Q"]
+      "C-6-C-6-C-0-C-4-C-6-C-3-C-12-C": {
+        "JZT49_CHIJI": ["GLLMDA", "DGKSTF", "", "SGYN", "SPTWKW", "VLD", "PNLFLLPPTKTL"]
       },
-      "C-6-C-6-C-0-C-4-C-1-C-9-C-1-C": {
-        "TX35A_PHONI": ["IGHRRS", "KEDRNG", "", "RLYT", "N", "WYPTPGDQW", "K"]
+      "C-6-C-5-C-0-C-3-C-5-C-6-C-3-C": {
+        "CALA_CALS5": ["ISARYP", "SNSKD", "", "SGN", "GTFWT", "YIRKDP", "SKE"]
+      }
+    },
+    "C-C-CXCC-C-C-C": {
+      "C-6-C-3-C-1-C-0-C-5-C-12-C-23-C": {
+        "JZT62_CHIJI": ["IEEWKT", "EHS", "E", "", "GSSTI", "SSTWAEGKEIKL", "KNEGGTFKKVLHFIQKGISKLKS"],
+        "JZT63_CHIJI": ["IEEWKT", "ENS", "E", "", "GSSTI", "SSTWAEGKEIKL", "KNEGGTFKKVLHFIQKGISKLKS"],
+        "H15E1_HAPHA": ["IEEWKT", "END", "E", "", "GMSTL", "AASWVDGHQIKL", "RNEGGKLKKVLHFIQKSVSKIKS"],
+        "H15A1_HAPHA": ["IEEWKT", "END", "E", "", "GMSTL", "AASWVDGHQIKL", "RNEGGKLKKVLHFIQKSVSKIKS"],
+        "H15B1_HAPHA": ["IEEWKT", "END", "E", "", "GMSTL", "AASWVDGHQIKL", "RNVGGKLKKVLHFIQKSVSKIKS"],
+        "H15A2_HAPHA": ["IEEWKT", "END", "E", "", "GMSTL", "AASWVDGHQIKL", "RNEGGKLKKVLHFIQKSVSKIKS"],
+        "H15C1_HAPHA": ["IEEWKT", "END", "E", "", "GMSTL", "AASWVDGHEIKL", "RNEGGKLKKVLHFIQKSVSKIRS"],
+        "H15D1_HAPHA": ["IEEWKT", "END", "E", "", "GMSTL", "AASWVDGHEIKL", "RNEGGKLKKVLHFIQKSVSKIKS"],
+        "B3FIP0_HAPSC": ["IEEWKT", "END", "E", "", "GMSTL", "AASWVDGHQIKL", "RNEGGKLKKVLHFIQKSVSKVKS"]
+      },
+      "C-6-C-3-C-1-C-0-C-5-C-10-C-24-C": {
+        "JZ66B_CHIJI": ["ILKGDH", "HGT", "D", "", "GWTTT", "RKSKSAGGKI", "KSEGSSISAFNAIAKGVAAMKKAK"],
+        "JZ66A_CHIJI": ["ILKGDH", "HGT", "D", "", "GWTTT", "RKSKSAGGKI", "KSEGSSISAFNAIAKGVAAMKKAK"]
+      },
+      "C-7-C-3-C-1-C-0-C-5-C-12-C-26-C": {
+        "JZT65_CHIJI": ["SKKAGEK", "ESN", "D", "", "GYSTL", "GYITEGKEVKYQ", "MSKTSNNEILNTIGLGMNAIENMFSF"],
+        "JZT64_CHIJI": ["SKKAGEK", "KSN", "D", "", "GYSTL", "GYITEGKEVKYQ", "MSKTSNNKILNTVGLGVNAIENMLSF"],
+        "I2FKH7_GRARO": ["TRQIGQN", "NDN", "D", "", "GSAVV", "GYISVGSKIENL", "MNKTSNNWLLNQVGYVWNAMKNAASM"],
+        "M5AWW2_GRARO": ["TRQIGQN", "TDN", "D", "", "GSAVI", "GYITVGSNIEYL", "MNKTSNNWFLNQVGYVWNAMKNAASM"],
+        "H18A1_HAPHA": ["SKQIGDK", "KRN", "E", "", "GKTVV", "GTIYVGGKEVNQ", "MDKTSDNAILNGLGKGMNFIENTFSF"],
+        "H18C1_HAPHA": ["SKQIGDK", "KRN", "E", "", "RKTVV", "GTIYVGGKEVNQ", "MDKTSDNAILNGLGKGMNFIENTFSF"],
+        "H18E1_HAPHA": ["SKQIGNK", "KRN", "E", "", "GKTVV", "GTIYVGGKEVNQ", "MDKTSDNAILNGLGKGMNFIENTFSF"],
+        "H18G1_HAPHA": ["SKQIGDK", "KRN", "E", "", "GKTVV", "GTIYVGGKEVNQ", "MDKTSDNAILNGLGKGMNFMENTFSF"],
+        "H18A2_HAPHA": ["SKQIGDK", "KRN", "E", "", "GKTVV", "GTIYVGGKEVNQ", "MDKTSDNAILNGLGKGMNFIENTFSF"],
+        "H18F1_HAPHA": ["SKQIGDK", "KRN", "E", "", "GKTVV", "GTIYVGGKEVNQ", "MDKTSDNAILNRLGKGMNFIENTFSF"],
+        "B2ZBB0_HAPSC": ["SKQIGDR", "KSN", "D", "", "GTTVS", "GTIYVGGKEVNQ", "MDKSSDNAVLSGIGKGWNFVKNGFSF"],
+        "B3FIN6_HAPSC": ["SKQIGDR", "KSN", "D", "", "GTTVS", "GTIYVGGKEVNQ", "MDKSSDNAVLNGIGKGWNFVKNGFSF"],
+        "B2ZBB1_HAPSC": ["SKQIGDR", "KSN", "G", "", "GTTVS", "GTIYVGGKEVNQ", "MDKSSDNAVLNGIGKGWNFVKNGFSF"],
+        "B2ZBB2_HAPSC": ["SKQIGDR", "KSN", "D", "", "GTTVS", "GTIYVGGKEVNQ", "MDKSSDNAVLNGIGKGWNFVKNGFSF"],
+        "B2ZBA9_HAPSC": ["SKQIGDR", "KSN", "D", "", "GTTVS", "GTIYVGGKEVNQ", "MDKSSDNAVLNGIGKGWNFVKNGFSF"],
+        "B3FIN7_HAPSC": ["SKQIGDR", "KSN", "D", "", "GTTVT", "GTIYVGGKEVNQ", "MDKSSDNAVLNGIGKGWNFVKNGFSF"],
+        "TX18A_HAPSC": ["SKNPGES", "TNN", "E", "", "GATVV", "ASVYVAGVEKKS", "KSKTSDNGFLNIIGQAANAVQNAASL"]
+      },
+      "C-10-C-3-C-1-C-0-C-5-C-8-C-28-C": {
+        "TXM12_MACGS": ["IVGSKNIGET", "VAS", "Q", "", "GATVR", "IGEGTKGI", "NNYQTNNILGQILLYAKDTVVNTAGLLV"]
+      },
+      "C-7-C-3-C-1-C-0-C-5-C-12-C-28-C": {
+        "D5J6X8_PELMU": ["SKQIGEK", "EHD", "Q", "", "GATVV", "GTIYVGGNAVEQ", "MSKTSNNAVLNTMGHGMNAVQNAFTSVM"]
+      }
+    },
+    "C-C-CCXCC-C-C": {
+      "C-6-C-2-C-0-C-1-C-0-C-4-C-10-C": {
+        "TK1A_HADMO": ["TGADRP", "AA", "", "P", "", "PGTS", "QGPESNXISY"]
+      },
+      "C-6-C-2-C-0-C-1-C-0-C-4-C-9-C": {
+        "TK1E_HADVE": ["PGADRP", "AA", "", "P", "", "PGTS", "KAESNGVFY"],
+        "S0F1P1_HADVE": ["TGADSP", "AA", "", "P", "", "PGTS", "KAESNGVSY"]
       }
     },
     "C-CC-CC-C-C-C": {
@@ -786,7 +855,62 @@
     }
   },
   "10": {
-    "C-C-C-X-CC-C-X-C-C-X-C-C": {
+    "C-C-CC-C-CC-C-C-C": {
+      "C-7-C-6-C-0-C-4-C-5-C-0-C-3-C-3-C-18-C": {
+        "PN125.mature": ["PERSSKM", "IRNQIL", "", "SDND", "EAGKV", "", "YEN", "GTE", "RTVSLKPTSGRKVVPDKN"],
+        "PN344.mature": ["PPRRTRV", "VWAQNQ", "", "SNGD", "PAGQL", "", "DEN", "GNE", "RPAQQWQSNGRLVPFRPA"],
+        "PN346.mature": ["PPRPTRF", "IGTVNE", "", "SNEG", "PAGQL", "", "EEN", "GDV", "RPAQPWQSSGRRAPFRPV"]
+      },
+      "C-8-C-8-C-0-C-4-C-5-C-0-C-3-C-3-C-18-C": {
+        "PN306.mature": ["PELKDTEP", "PMKYRRND", "", "KQSD", "PWKST", "", "KLP", "GNY", "LRESSEKTNGIPVVAGEH"]
+      }
+    },
+    "C-C-CC-C-C-CXC-C-C": {
+      "C-5-C-4-C-0-C-8-C-9-C-12-C-1-C-5-C-5-C": {
+        "PN123.mature": ["TTNDD", "GEGQ", "", "TGGSYNRH", "QSLSDDGKP", "QRPNKYDEYKFG", "P", "KEGLL", "SVINY"],
+        "PN121.mature": ["TTNAD", "GEGQ", "", "TGGSYNRH", "QSLSDDGKP", "QRPNKYDEYKFG", "P", "KEGLM", "SVINY"],
+        "PN120.mature": ["TTNDD", "DEGQ", "", "TGGSYNRH", "QSLSDDGKP", "QRPNKYDEYKFG", "P", "KEGLL", "SVINY"]
+      },
+      "C-5-C-4-C-0-C-10-C-9-C-15-C-1-C-5-C-18-C": {
+        "PN350.mature": ["DKNDD", "TEEQ", "", "VQIHPFTGKV", "KNLRREGDH", "FTHYQGKDEDFYKFM", "P", "VKDLN", "EPEDVIKEGDITRIINPK"]
+      }
+    },
+    "C-C-CXCC-CXC-CXC-C": {
+      "C-6-C-3-C-1-C-0-C-5-C-1-C-5-C-1-C-16-C": {
+        "PN021.mature": ["GDINAA", "KED", "D", "", "GYTTA", "D", "YWSKS", "K", "REAAIVIYTAPKKKLT"],
+        "PN031.mature": ["GDINAA", "KED", "D", "", "GYTTA", "D", "YWSSS", "K", "REAAIVIITAPKKKLT"],
+        "TX461_PHONI": ["GDINAA", "KED", "D", "", "GYTTA", "D", "YWSKS", "K", "REAAIVIYTAPKKKLT"]
+      },
+      "C-6-C-3-C-1-C-0-C-5-C-1-C-3-C-1-C-14-C": {
+        "PN307.mature": ["AGQDKP", "KET", "D", "", "GERGE", "V", "GGP", "I", "RQGYFWIAWYKLAS"],
+        "PN310.mature": ["AGQDQP", "KET", "D", "", "GERGE", "V", "GGP", "I", "RQGYFWIAWYKLAS"],
+        "PN078.mature": ["AGQDQP", "KET", "D", "", "GERGE", "V", "GGP", "I", "RQGYFWIAWYKLAN"],
+        "PN077.mature": ["AGQDQT", "KVT", "D", "", "GERGE", "V", "GGP", "I", "RQGNFLIAWYKLAS"],
+        "TX25_PHONI": ["AGQDQT", "KVT", "D", "", "GERGE", "V", "GGP", "I", "RQGNFLIAWYKLAS"],
+        "TX26_PHONI": ["AGQDQP", "KET", "D", "", "GERGE", "V", "GGP", "I", "RQGYFWIAWYKLAN"]
+      },
+      "C-6-C-3-C-1-C-0-C-5-C-1-C-5-C-1-C-15-C": {
+        "PN028.mature": ["ADINGA", "NSD", "D", "", "GDSVT", "D", "YWSNS", "K", "RESNFKIGMAIRKKF"],
+        "PN027.mature": ["ADINGA", "KSD", "D", "", "GDSVT", "D", "YWSNS", "K", "RESNFKIGMAIRKKF"],
+        "PN026.mature": ["ADINGA", "KSD", "D", "", "GDSVT", "D", "YWSDS", "K", "RESNFKIGMAIRKKF"],
+        "PN032.mature": ["GDINAP", "ESD", "D", "", "GYSVT", "D", "YWSKD", "K", "RESLFPAGMALRKAF"],
+        "PN023.mature": ["GDINAP", "ESD", "D", "", "GYSVT", "D", "YWSSS", "K", "RESLFPPGMALRKAF"],
+        "PN159.mature": ["GDINAP", "QSD", "D", "", "GYSVT", "D", "YWSKD", "K", "RESNFAAGMALRKAF"],
+        "TX4B_PHONI": ["GDINAP", "QSD", "D", "", "GYSVT", "D", "YWSSS", "K", "RESLFPLGMALRKAF"],
+        "TX455_PHONI": ["ADINGA", "KSD", "D", "", "GDSVT", "D", "YWSDS", "K", "RESNFKIGMAIRKKF"]
+      },
+      "C-6-C-3-C-1-C-0-C-5-C-1-C-9-C-1-C-14-C": {
+        "PN259.mature": ["AGQDKP", "KET", "D", "", "GERGE", "V", "ALSYEGKYR", "I", "RQGNFLIAWHKLAS"],
+        "PN082.mature": ["AGQDKP", "KET", "D", "", "GERGE", "V", "GLSYEGKYK", "I", "RQGYVWIAWYKLAS"],
+        "PN309.mature": ["AGQDQP", "KET", "D", "", "GERGE", "V", "GLSYEGKYR", "I", "RQGYVWIAWYKLAS"],
+        "PN333.mature": ["AGQDKP", "KET", "D", "", "GERGE", "V", "GLSYEGKYR", "I", "RQGYVWIAWYKLAS"],
+        "PN079.mature": ["AGQDKP", "KET", "D", "", "GERGE", "V", "ALSYEGKYR", "I", "RQGYVWIAWYKLAS"],
+        "TX21_PHONI": ["AGQDKP", "KET", "D", "", "GERGE", "V", "ALSYEGKYR", "I", "RQGNFLIAWHKLAS"],
+        "TX21A_PHONI": ["AGQDKP", "KET", "D", "", "GERGE", "V", "ALSYEGKYR", "I", "RQGYVWIAWYKLAS"]
+      },
+      "C-6-C-3-C-1-C-0-C-5-C-1-C-4-C-1-C-13-C": {
+        "PN060.mature": ["ADIDQP", "KTS", "D", "", "ETKGA", "T", "YKSG", "V", "RMGSFFTAWGKAS"]
+      },
       "C-6-C-3-C-1-C-0-C-4-C-1-C-11-C-1-C-10-C": {
         "W0LKM7_OXYTA": ["WALGTT", "SND", "D", "", "PEHH", "H", "PAKRWTFGLLR", "Y", "HENHDGKANK"],
         "W0LPG8_OXYTA": ["WALGTT", "SND", "D", "", "PEHH", "H", "PAKTWTFGLLR", "Y", "HENHDGKANK"],
@@ -816,13 +940,6 @@
         "S5N3S9_9ARAC": ["AAFKAA", "TKDDD", "S", "", "GDWDK", "D", "NWPGKPG", "Y", "MRGMIATRLKKMAI"],
         "S5MFF9_9ARAC": ["AAFKAA", "TKDDD", "S", "", "GDWDK", "D", "NWPGKPG", "Y", "MRGMIATRLKKMAI"]
       },
-      "C-6-C-3-C-1-C-0-C-5-C-1-C-5-C-1-C-15-C": {
-        "TX4B_PHONI": ["GDINAP", "QSD", "D", "", "GYSVT", "D", "YWSSS", "K", "RESLFPLGMALRKAF"],
-        "TX455_PHONI": ["ADINGA", "KSD", "D", "", "GDSVT", "D", "YWSDS", "K", "RESNFKIGMAIRKKF"]
-      },
-      "C-6-C-3-C-1-C-0-C-5-C-1-C-5-C-1-C-16-C": {
-        "TX461_PHONI": ["GDINAA", "KED", "D", "", "GYTTA", "D", "YWSKS", "K", "REAAIVIYTAPKKKLT"]
-      },
       "C-6-C-5-C-1-C-0-C-5-C-1-C-7-C-1-C-15-C": {
         "TXC01_LYCSI": ["ADLRQP", "TEGDD", "S", "", "GSEGV", "N", "SHPHKKG", "Y", "KTAGPLEKLAKKFKG"],
         "TXC05_LYCSI": ["ADLRQP", "TEGDD", "S", "", "GSEGV", "N", "SHPHKKG", "Y", "KTAGPLEKLAKKFKG"],
@@ -830,23 +947,20 @@
         "TXC03_LYCSI": ["ADLRQP", "TEGDD", "S", "", "GREGV", "N", "SHPHKKG", "Y", "KTAGPLEKLAKKFKG"],
         "TXC04_LYCSI": ["ADLRQP", "TEGDD", "S", "", "GSEGV", "N", "SHPHKKG", "Y", "KTAGLLEKLAKKFKG"],
         "TXC06_LYCSI": ["ADLRQP", "TKGDD", "S", "", "GSDGV", "N", "EHLHKTG", "F", "KTAGPYEKLKKWFKR"]
-      },
-      "C-6-C-3-C-1-C-0-C-5-C-1-C-9-C-1-C-14-C": {
-        "TX21_PHONI": ["AGQDKP", "KET", "D", "", "GERGE", "V", "ALSYEGKYR", "I", "RQGNFLIAWHKLAS"],
-        "TX21A_PHONI": ["AGQDKP", "KET", "D", "", "GERGE", "V", "ALSYEGKYR", "I", "RQGYVWIAWYKLAS"]
-      },
-      "C-6-C-3-C-1-C-0-C-5-C-1-C-3-C-1-C-14-C": {
-        "TX25_PHONI": ["AGQDQT", "KVT", "D", "", "GERGE", "V", "GGP", "I", "RQGNFLIAWYKLAS"],
-        "TX26_PHONI": ["AGQDQP", "KET", "D", "", "GERGE", "V", "GGP", "I", "RQGYFWIAWYKLAN"]
       }
     },
-    "C-C-CC-C-X-C-C-C-X-C-C": {
+    "C-CXC-CXC-CXC-C-C-C": {
+      "C-6-C-1-C-6-C-1-C-10-C-1-C-7-C-5-C-19-C": {
+        "PN327.mature": ["DGYGSD", "Q", "YGKWHK", "S", "PWFWPLRKGK", "Y", "EMAYKHT", "ITKLS", "PNRKEWGLAWRSEESQRSP"]
+      }
+    },
+    "C-C-CC-CXC-C-CXC-C": {
       "C-6-C-8-C-0-C-10-C-1-C-2-C-6-C-1-C-11-C": {
         "LTX2B_LACTA": ["IPLYND", "KEFKYNNN", "", "KDPEKKYQYK", "S", "IM", "EGGEEQ", "T", "QRKETVENMMK"],
         "LTX2A_LACTA": ["IPLYND", "TAFKYNNN", "", "KDPEKKYQYK", "S", "IV", "KEGKEQ", "T", "QRKETVESMMK"]
       }
     },
-    "C-C-CC-C-C-X-C-C-X-C-C": {
+    "C-C-CC-C-CXC-CXC-C": {
       "C-6-C-4-C-0-C-2-C-2-C-1-C-5-C-1-C-6-C": {
         "TXDOA_PLETR": ["AGWNDN", "DKRS", "", "DQ", "HQ", "R", "KFGSN", "R", "TGTKPS"]
       },
@@ -856,7 +970,7 @@
         "TXP11_PLETR": ["IGWQEY", "RGNLP", "", "DD", "VM", "E", "NIMGQN", "R", "NHPRITSE"]
       }
     },
-    "C-C-CC-C-X-C-C-X-C-C-C": {
+    "C-C-CC-CXC-CXC-C-C": {
       "C-6-C-9-C-0-C-8-C-1-C-4-C-1-C-3-C-4-C": {
         "TX32_LOXIN": ["IKSGQR", "GSPHGLPSN", "", "DDWKYKGR", "G", "TMGV", "T", "GKN", "PSRG"],
         "TX3_LOXIN": ["IKYGDR", "GSPHGLPSN", "", "NDWKYKGR", "G", "TMGV", "T", "GPN", "PSRG"]
@@ -866,29 +980,26 @@
         "TX2_LOXIN": ["KGEGVKG", "YYEADDW", "", "KKTP", "K", "PAWSHERE", "R", "TQP", "NPS"]
       }
     },
-    "C-C-C-X-CC-C-C-C-C-C": {
+    "C-C-CXCC-C-C-C-C-C": {
       "C-6-C-3-C-1-C-0-C-6-C-5-C-7-C-6-C-7-C": {
         "S5MJS6_9ARAC": ["IQRGQS", "KSD", "D", "", "ADDWDQ", "NFWGT", "VAGTASD", "FDKKKN", "KVKPKKM"]
       }
     },
-    "C-C-X-C-CC-C-X-C-C-X-C-C": {
+    "C-CXC-CC-CXC-CXC-C": {
       "C-4-C-1-C-6-C-0-C-4-C-1-C-6-C-1-C-10-C": {
         "TXAG8_AGEOR": ["IGRS", "T", "DTSSTS", "", "PYAA", "R", "NLWKTS", "K", "QRTGRKWATP"]
       }
     }
   },
-  "16": {
-    "C-C-CC-C-X-C-C-X-C-C-C-CC-C-X-C-C-X-C": {
-      "C-6-C-6-C-0-C-8-C-1-C-9-C-1-C-26-C-6-C-6-C-0-C-8-C-1-C-13-C-1-C": {
-        "TX3A_CHEPU": ["VPRDGD", "TENRKA", "", "RSKIFQDR", "Q", "RKVSQDKVA", "S", "KQPYWLMKIEEILGDIPEKPKPVEGK", "VKKHHD", "SQRKND", "", "PGSMENYT", "K", "YNTLEEGAKESEI", "G"]
-      },
-      "C-6-C-6-C-0-C-8-C-1-C-8-C-1-C-26-C-6-C-6-C-0-C-8-C-1-C-13-C-1-C": {
-        "TX1_CHEPU": ["IERNKE", "TNDRHG", "", "RGKIFKDK", "T", "VKNGKTEK", "V", "TQKKWAKIIESYIGDIPALPKPVDDK", "VPKHAD", "SKRKDD", "", "KGGIFKYQ", "K", "YDMYDDDGEKTDL", "G"]
-      }
-    }
-  },
   "12": {
-    "C-C-C-X-CC-C-X-C-C-X-C-C-C-C": {
+    "C-C-CXCC-CXC-CXC-C-C-C": {
+      "C-6-C-6-C-1-C-0-C-5-C-1-C-9-C-1-C-7-C-6-C-12-C": {
+        "PN300.mature": ["LKLDSP", "DPDKGD", "Q", "", "RSNAF", "G", "ALGYKVFGN", "K", "RVGDVRT", "RKKQEK", "KNWRAWTNYPIQ"]
+      },
+      "C-6-C-3-C-1-C-0-C-5-C-1-C-7-C-1-C-7-C-6-C-12-C": {
+        "PN001.mature": ["FEGGKD", "KND", "Q", "", "GKWSY", "K", "PIWGLFG", "S", "VIGDSMV", "VRKKEQ", "RNPEVMNTPPGG"],
+        "TXAG9_AGEOR": ["IKEGEK", "AGD", "Q", "", "GKWSY", "S", "PLFGALG", "S", "IIGDAMV", "VRKKKE", "RTSDVMNTPPGG"]
+      },
       "C-6-C-3-C-1-C-0-C-6-C-1-C-6-C-1-C-7-C-6-C-6-C": {
         "S5MYC2_9ARAC": ["TSRGKS", "KSD", "E", "", "GHDWDS", "S", "TLGLFA", "S", "VPGTIND", "YNKQKK", "SNKPKQ"],
         "S5MFE2_9ARAC": ["TSRGKS", "KSD", "E", "", "GHDWDS", "S", "TLGLFA", "S", "VPGTIND", "YNKQKK", "SNKPKQ"]
@@ -907,30 +1018,57 @@
         "TXD09_LYCSI": ["ADMGQD", "KDD", "D", "", "LNIAT", "N", "WFGRYF", "S", "TFGDYQT", "LRKKGK", "KRNRPQS"],
         "TXD05_LYCSI": ["ADMGQD", "KDD", "D", "", "LNIAT", "N", "RFGRYF", "S", "TFGDYQT", "LRKKGK", "KRNRPQS"]
       },
-      "C-6-C-3-C-1-C-0-C-5-C-1-C-7-C-1-C-7-C-6-C-12-C": {
-        "TXAG9_AGEOR": ["IKEGEK", "AGD", "Q", "", "GKWSY", "S", "PLFGALG", "S", "IIGDAMV", "VRKKKE", "RTSDVMNTPPGG"]
-      },
       "C-6-C-8-C-1-C-0-C-5-C-1-C-12-C-1-C-9-C-5-C-9-C": {
         "TXAG1_AGEOR": ["IEIGGD", "DGYLDKSY", "Q", "", "RNNGF", "S", "YKVPEWFGYKVG", "K", "SVDWNFVGW", "RLKQF", "PGGSQNPSL"]
       }
     },
-    "C-C-C-X-CC-X-C-C-X-C-C-X-C-C-C": {
+    "C-C-CXCCXC-CXC-CXC-C-C": {
+      "C-6-C-3-C-1-C-0-C-1-C-3-C-1-C-10-C-1-C-7-C-6-C": {
+        "PN044.mature": ["IPRGEI", "TDD", "E", "", "G", "DNQ", "Y", "PPGSSLGIFK", "S", "AHANKYF", "NRKKEK"],
+        "TX36_PHONI": ["IPRGEI", "TDD", "E", "", "G", "DNQ", "Y", "PPGSSLGIFK", "S", "AHANKYF", "NRKKEK"]
+      },
       "C-6-C-3-C-1-C-0-C-1-C-3-C-1-C-13-C-1-C-7-C-6-C": {
+        "PN053.mature": ["LARGET", "KDD", "E", "", "D", "DNQ", "Y", "PFDWFGGKWHPVG", "S", "AHANQYF", "DHKKEK"],
+        "PN313.mature": ["LDIGKT", "KDD", "E", "", "D", "DNQ", "Y", "PFDWFGGKWHPVG", "S", "AHANQYF", "DHKKEK"],
+        "PN092.mature": ["LDIGKT", "KDD", "E", "", "G", "GNV", "Y", "PFDWFGGKWQPFG", "S", "AYGLKYV", "AHKQKK"],
+        "PN314.mature": ["KARGDT", "QKD", "D", "", "G", "FYK", "H", "PLDWFGGKWHPLG", "S", "VYGDKYM", "EKKKKE"],
         "TX36A_PHONI": ["LARGET", "KDD", "E", "", "D", "DNQ", "Y", "PFDWFGGKWHPVG", "S", "AHANQYF", "DHKKEK"],
         "TX36B_PHONI": ["LDIGKT", "KDD", "E", "", "G", "GNV", "Y", "PFDWFGGKWQPFG", "S", "AYGLKYV", "AHKQKK"]
-      },
-      "C-6-C-3-C-1-C-0-C-1-C-3-C-1-C-10-C-1-C-7-C-6-C": {
-        "TX36_PHONI": ["IPRGEI", "TDD", "E", "", "G", "DNQ", "Y", "PPGSSLGIFK", "S", "AHANKYF", "NRKKEK"]
       }
     }
   },
   "14": {
-    "C-C-C-X-CC-C-X-C-C-X-C-C-C-C-C-C": {
+    "C-C-CXCC-CXC-CXC-C-C-C-C-C": {
       "C-6-C-6-C-1-C-0-C-5-C-1-C-6-C-1-C-11-C-5-C-10-C-3-C-3-C": {
+        "PN267.mature": ["FPVGHE", "DGDASN", "N", "", "GDDVY", "G", "GWGRWN", "K", "KVADQSYAYGI", "KDKVN", "PNRHLWPAKV", "KKP", "RRN"],
+        "PN129.mature": ["FPVGHE", "DGDASN", "N", "", "GDDVY", "G", "GWGRWN", "K", "KVADQSYAYGI", "KDKVN", "PNRHLWPAKV", "KKP", "RRN"],
         "TXL1_PHONI": ["FPVGHE", "DGDASN", "N", "", "GDDVY", "G", "GWGRWN", "K", "KVADQSYAYGI", "KDKVN", "PNRHLWPAKV", "KKP", "RRN"]
       },
       "C-6-C-6-C-1-C-0-C-5-C-1-C-9-C-1-C-11-C-5-C-5-C-3-C-4-C": {
+        "PN065.mature": ["IEHGDY", "DGDKDD", "Q", "", "RDNGY", "S", "SGIFGLKWN", "R", "DVGSTSSSYAI", "MAKHK", "GRQPT", "TKP", "LSKR"],
+        "PN076.mature": ["INHGDE", "DGYKDD", "Q", "", "RSNGF", "S", "SGIFGYKWN", "I", "DVGTTATSYRI", "MAKHE", "GRKTT", "TKP", "LSRR"],
+        "PN318.mature": ["INHGDE", "DGYKDD", "Q", "", "RSNGF", "S", "SGIFGYKWN", "I", "DVGTTATSYRI", "MAKHE", "GRKTT", "TKP", "LSKR"],
+        "PN319.mature": ["INVGDF", "DGKKDD", "Q", "", "RDNAF", "S", "SVIFGYKTN", "R", "EVGTTATSYGI", "MAKHK", "GRQTT", "TKP", "LSRR"],
+        "PN064.mature": ["INVGDF", "DGKKDD", "Q", "", "RDNAF", "S", "SVIFGYKTN", "R", "EVGTTATSYGI", "MAKHK", "GRQTT", "TKP", "LSKR"],
         "TX34_PHONI": ["INVGDF", "DGKKDD", "Q", "", "RDNAF", "S", "SVIFGYKTN", "R", "EVGTTATSYGI", "MAKHK", "GRQTT", "TKP", "LSKR"]
+      },
+      "C-6-C-6-C-1-C-0-C-5-C-1-C-7-C-1-C-11-C-5-C-12-C-3-C-4-C": {
+        "PN320.mature": ["IELNND", "DGSKDD", "Q", "", "RDNGY", "E", "KWFFGWN", "H", "MVGTTSSSYGI", "LEKIK", "PNRHTWTSSKKE", "KRS", "TAKH"]
+      },
+      "C-6-C-6-C-1-C-0-C-5-C-1-C-9-C-1-C-11-C-5-C-12-C-3-C-4-C": {
+        "PN004.mature": ["INLKGY", "DGSKDD", "Q", "", "RDNAF", "S", "YNIFGYKFG", "K", "SVGHSLTSESV", "RRKLN", "PNRHEWNPGKKE", "PPA", "TGRG"],
+        "PN130.mature": ["LELGKD", "DGYKDN", "Q", "", "RDNAF", "S", "YNVFGYKFG", "K", "AVGNSVTGYSV", "LTKLE", "PNRRSWTTWKKE", "EKP", "LTKR"],
+        "PN128.mature": ["IELNND", "DGSKDD", "Q", "", "RDNAY", "S", "YNFFGIKSG", "K", "SVGNSGTGYSV", "LKKLE", "PNRRAWTSWKKE", "TKP", "IGKR"]
+      }
+    }
+  },
+  "16": {
+    "C-C-CC-CXC-CXC-C-C-CC-CXC-CXC": {
+      "C-6-C-6-C-0-C-8-C-1-C-9-C-1-C-26-C-6-C-6-C-0-C-8-C-1-C-13-C-1-C": {
+        "TX3A_CHEPU": ["VPRDGD", "TENRKA", "", "RSKIFQDR", "Q", "RKVSQDKVA", "S", "KQPYWLMKIEEILGDIPEKPKPVEGK", "VKKHHD", "SQRKND", "", "PGSMENYT", "K", "YNTLEEGAKESEI", "G"]
+      },
+      "C-6-C-6-C-0-C-8-C-1-C-8-C-1-C-26-C-6-C-6-C-0-C-8-C-1-C-13-C-1-C": {
+        "TX1_CHEPU": ["IERNKE", "TNDRHG", "", "RGKIFKDK", "T", "VKNGKTEK", "V", "TQKKWAKIIESYIGDIPALPKPVDDK", "VPKHAD", "SKRKDD", "", "KGGIFKYQ", "K", "YDMYDDDGEKTDL", "G"]
       }
     }
   }
