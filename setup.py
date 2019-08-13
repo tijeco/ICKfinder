@@ -2,7 +2,7 @@ from setuptools import setup
 
 
 setup(name='cluck',
-      version='0.1.4',
+      version='0.1.5',
       description='Command Line Utility for Cysteine Knot peptides',
       url='http://github.com/tijeco/cluck',
       author='Flying Circus',
