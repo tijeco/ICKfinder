@@ -16,7 +16,7 @@ def faDict2json(fa_dict):
             cys_motif = ''.join(["-C-"+str(x - (1+cys_positions[i - 1])) for i, x in enumerate(cys_positions)][1:]+["-C"]).strip('-')
 
             general_pattern = cys_motif.replace("-0-","")
-            general_pattern = general_pattern.replace("-1-","-X-")
+            general_pattern = general_pattern.replace("-1-","X")
             general_pattern = re.sub(r'[0-9]+', '', general_pattern)
             general_pattern = general_pattern.replace("--","-")
 
