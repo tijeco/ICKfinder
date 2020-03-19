@@ -3,8 +3,10 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"os"
 	"sort"
@@ -96,63 +98,32 @@ func difList(d []int) []int {
 	return dif
 }
 
-// May need to go back to the drawing board on this one, doesn't seem to work at all
-func subset(first, second []int) [2]int {
-	set := make(map[int]int)
-	pos := make(map[int][]int)
-	for i, value := range second {
-		set[value] += 1
-		pos[value] = append(pos[value], i)
-	}
-	// p(set)
-	// p(pos)
-	coordinates := [2]int{0, 0}
-	first_found := true
-	// p(coordinates, coordinates == [2]int{0, 0})
-	// first_total := 0
+// need to edit this function to also do reverse strand
+// this can be accomplished in the following manner
+// generate reverse compliment of codon
+//  search reverse compliment against s
+// this will give you the third position of each codon on reverse strand
+// keep that in mind when procssing it in further steps
+// how about we make it so this only returns a map with 0,1,2 keys, and not direction??
+// that way direction can just be declared on the fly!
 
-	for _, value := range first {
+func codoncount(s, substr string) map[int][]int {
+	var cys_map = map[int][]int{}
 
-		if count, found := set[value]; !found {
-			// checks to see if value from first are in second
-			// if first is a subset of second, then all values in first should be in second
-			return [2]int{0, 0}
-		} else if count < 1 {
-			// sort of confused on this, but I believe it is if the count is less than 1
-			// I believe this may be because in the next one it reduces cound
-			return [2]int{0, 0}
-		} else {
-			if first_found {
-				coordinates[0] = pos[value][len(pos[value])-count]
-				first_found = false
-			}
+	cys_map[0] = make([]int, 0)
+	cys_map[1] = make([]int, 0)
+	cys_map[2] = make([]int, 0)
 
-			// p(pos[value], value, count, len(pos[value])-count, pos[value][len(pos[value])-count], found)
-			set[value] = count - 1
-			coordinates[1] = len(first) + coordinates[0]
-			// p("End:", len(first)-1+coordinates[0])
-			// first_total += value * 3
-
-		}
-
-	}
-	// p("End:", first_total)
-	// p(coordinates)
-
-	return coordinates
-}
-
-func codoncount(s, substr string) map[string]map[int][]int {
-	var cys_map = map[string]map[int][]int{
-		"forward": map[int][]int{},
-	}
-	cys_map["forward"][0] = make([]int, 0)
-	cys_map["forward"][1] = make([]int, 0)
-	cys_map["forward"][2] = make([]int, 0)
-	// fmt.Println(s)
 	original := s
 	// n := 0
 	original_pos := -3
+	// for direction,_ := range cys_map{
+	// 	if direction == "reverse"{
+	// 		substr = reverseCompliment(substr)
+	// 	}
+	//
+	//
+	// }
 	for {
 		i := strings.Index(s, substr)
 		if i == -1 {
@@ -171,24 +142,99 @@ func codoncount(s, substr string) map[string]map[int][]int {
 				// p("Whoopsy", original_pos, original[original_pos:original_pos+3], original[original_pos+2:original_pos+3+2])
 				if original[original_pos:original_pos+3] == original[original_pos+2:original_pos+3+2] {
 					// p("Whoopsy", original_pos+2, original[original_pos+3:original_pos+3+1], original[original_pos+1:original_pos+1+1], original[original_pos:original_pos+3], original[original_pos:original_pos+3+2], original[original_pos+2:original_pos+3+2])
-					cys_map["forward"][(original_pos+2)%3] = append(cys_map["forward"][(original_pos+2)%3], original_pos+2)
+					cys_map[(original_pos+2)%3] = append(cys_map[(original_pos+2)%3], original_pos+2)
 
 				}
 				// p("Whoopsy", original_pos+2, original[original_pos+3:original_pos+3+1], original[original_pos+1:original_pos+1+1], original[original_pos:original_pos+3], original[original_pos:original_pos+3+2], original[original_pos+2:original_pos+3+2])
-				// cys_map["forward"][(original_pos+2)%3] = append(cys_map["forward"][(original_pos+2)%3], original_pos+2)
+				// cys_map[(original_pos+2)%3] = append(cys_map[(original_pos+2)%3], original_pos+2)
 			}
 		}
 
 		// p(original_pos, original_pos%3, original[original_pos:original_pos+3], original)
-		cys_map["forward"][original_pos%3] = append(cys_map["forward"][original_pos%3], original_pos)
+		cys_map[original_pos%3] = append(cys_map[original_pos%3], original_pos)
 		s = s[i+len(substr):]
 
 		// if reading frame, add original_pos (original position) to corresponding data structure
 		// data structure should likely be a dict of the following structure:
 		// cys_positions = {"forward": {0:[n1, n+1, ... nx]},1:[...],2:[...]}
 		// reverse will have to be dealt with slightly differently
-	}
+	} // end for
 }
+
+// func codoncount(s, substr, direction string) map[string]map[int][]int {
+// 	var cys_map = map[string]map[int][]int{
+// 		"forward": map[int][]int{},
+// 		"reverse": map[int][]int{},
+// 	}
+//
+// 	cys_map["forward"][0] = make([]int, 0)
+// 	cys_map["reverse"][0] = make([]int, 0)
+// 	cys_map["forward"][1] = make([]int, 0)
+// 	cys_map["reverse"][1] = make([]int, 0)
+// 	cys_map["forward"][2] = make([]int, 0)
+// 	cys_map["reverse"][2] = make([]int, 0)
+// 	if direction == "reverse" {
+// 		substr = reverseCompliment(substr)
+// 	}
+// 	// cys_map["reverse"][0] = make([]int, 0)
+// 	// cys_map["reverse"][1] = make([]int, 0)
+// 	// cys_map["reverse"][2] = make([]int, 0)
+//
+// 	// for direction , _ := range cys_map{
+// 	// 	if direction == "reverse"{
+// 	// 		substr = reverseCompliment(substr)
+// 	//
+// 	// 	}
+// 	//
+// 	// }
+// 	// fmt.Println(s)
+//
+// 	original := s
+// 	// n := 0
+// 	original_pos := -3
+// 	// for direction,_ := range cys_map{
+// 	// 	if direction == "reverse"{
+// 	// 		substr = reverseCompliment(substr)
+// 	// 	}
+// 	//
+// 	//
+// 	// }
+// 	for {
+// 		i := strings.Index(s, substr)
+// 		if i == -1 {
+// 			return cys_map
+// 			// return n
+// 		}
+// 		// n++
+// 		original_pos = original_pos + (i + len(substr))
+// 		// p("Now at:", original_pos, "Remaining:", len(original)-(original_pos+1))
+//
+// 		// if original_pos+3 != len(original) {
+// 		if len(original)-(original_pos+1) > 3 {
+// 			// p("Whoopsy", original_pos+2, original[original_pos+3:original_pos+3+1], original[original_pos+1:original_pos+1+1], original[original_pos:original_pos+3], original[original_pos:original_pos+3+2], original[original_pos+2:original_pos+3+2])
+// 			if original[original_pos+3:original_pos+3+1] == original[original_pos+1:original_pos+1+1] {
+// 				// p("Whoopsy", original_pos, original[original_pos+3:original_pos+3+1], original[original_pos:original_pos+1], original[original_pos+1:original_pos+1+1], original[original_pos:original_pos+3], original[original_pos+1:original_pos+4])
+// 				// p("Whoopsy", original_pos, original[original_pos:original_pos+3], original[original_pos+2:original_pos+3+2])
+// 				if original[original_pos:original_pos+3] == original[original_pos+2:original_pos+3+2] {
+// 					// p("Whoopsy", original_pos+2, original[original_pos+3:original_pos+3+1], original[original_pos+1:original_pos+1+1], original[original_pos:original_pos+3], original[original_pos:original_pos+3+2], original[original_pos+2:original_pos+3+2])
+// 					cys_map["forward"][(original_pos+2)%3] = append(cys_map["forward"][(original_pos+2)%3], original_pos+2)
+//
+// 				}
+// 				// p("Whoopsy", original_pos+2, original[original_pos+3:original_pos+3+1], original[original_pos+1:original_pos+1+1], original[original_pos:original_pos+3], original[original_pos:original_pos+3+2], original[original_pos+2:original_pos+3+2])
+// 				// cys_map["forward"][(original_pos+2)%3] = append(cys_map["forward"][(original_pos+2)%3], original_pos+2)
+// 			}
+// 		}
+//
+// 		// p(original_pos, original_pos%3, original[original_pos:original_pos+3], original)
+// 		cys_map["forward"][original_pos%3] = append(cys_map["forward"][original_pos%3], original_pos)
+// 		s = s[i+len(substr):]
+//
+// 		// if reading frame, add original_pos (original position) to corresponding data structure
+// 		// data structure should likely be a dict of the following structure:
+// 		// cys_positions = {"forward": {0:[n1, n+1, ... nx]},1:[...],2:[...]}
+// 		// reverse will have to be dealt with slightly differently
+// 	} // end for
+// }
 
 func Equal(a, b []int) bool {
 	if len(a) != len(b) {
@@ -227,9 +273,79 @@ func getMatches(input, query []int) [][2]int {
 	} // end for
 	return out_pairs
 }
+
+func reverseCompliment(codon string) string {
+	// codon := "TGC"
+	// p(codon, "A"[0])
+
+	n := 0
+	runes := make([]rune, len(codon))
+	for _, r := range codon {
+
+		// nuc := "G"
+		switch string(r) {
+		case "A":
+			// fmt.Println("Switch from A to T")
+			// r := []rune("ABC€")
+			// fmt.Println(r) // [65 66 67 8364]
+			runes[n] = []rune("T")[0]
+		case "T":
+			// fmt.Println("Switch from T to A")
+			runes[n] = []rune("A")[0]
+		case "C":
+			// fmt.Println("Switch from C to G")
+			runes[n] = []rune("G")[0]
+		case "G":
+			// fmt.Println("Switch from G to C")
+			runes[n] = []rune("C")[0]
+		default:
+			// fmt.Println("Invalid nucleotide.")
+			runes[n] = r
+
+		}
+		// p(i, r, (string(r)))
+
+		n++
+	}
+	runes = runes[0:n]
+	// p(runes)
+	// Reverse
+	for i := 0; i < n/2; i++ {
+		runes[i], runes[n-1-i] = runes[n-1-i], runes[i]
+		// p(string(runes[i]), i, "and", runes[n-1-i], "will now be", runes[n-1-i], "and", runes[i])
+	}
+	// Convert back to UTF-8.
+	output := string(runes)
+	// fmt.Println(output)
+	return output
+}
+func reverse(numbers []int) []int {
+	newNumbers := make([]int, len(numbers))
+	for i, j := 0, len(numbers)-1; i <= j; i, j = i+1, j-1 {
+		newNumbers[i], newNumbers[j] = numbers[j], numbers[i]
+	}
+	return newNumbers
+}
+
 func main() {
-	toxin := []int{6, 6, 1, 0, 5, 1, 6, 1, 11, 5, 10, 3, 3}
-	p(toxin)
+	// toxin := []int{6, 6, 0, 4, 6}
+	// toxin := []int{6, 6, 1, 0, 5, 1, 6, 1, 11, 5, 10, 3, 3}
+	// p(toxin)
+	// Open our jsonFile
+	jsonFile, err := os.Open("clucktig.json")
+	// if we os.Open returns an error then handle it
+	if err != nil {
+		fmt.Println(err)
+	}
+	// fmt.Println("Successfully Opened clucktig.json")
+	// defer the closing of our jsonFile so that we can parse it later on
+	defer jsonFile.Close()
+
+	byteValue, _ := ioutil.ReadAll(jsonFile)
+
+	var patterns map[string][]int
+	json.Unmarshal([]byte(byteValue), &patterns)
+
 	fastaFh, err := os.Open(os.Args[1])
 	if err != nil {
 		log.Fatal(err)
@@ -239,62 +355,90 @@ func main() {
 	for record := range parse(fastaFh) {
 		record_TGT := codoncount(record.seq, "TGT")
 		record_TGC := codoncount(record.seq, "TGC")
-
-		record_cys := record_TGT
-		record_cys["forward"][0] = append(record_cys["forward"][0], record_TGC["forward"][0]...)
-		sort.Ints(record_cys["forward"][0])
-		record_cys["forward"][1] = append(record_cys["forward"][1], record_TGC["forward"][1]...)
-		sort.Ints(record_cys["forward"][1])
-		record_cys["forward"][2] = append(record_cys["forward"][2], record_TGC["forward"][2]...)
-		sort.Ints(record_cys["forward"][2])
-		p(record.id, getMatches(toxin, difList(record_cys["forward"][2])))
-		// p(record.id)
-		// p(record.id, len(record.seq),
-		// 	len(record_TGT["forward"][0]),
-		// 	len(record_TGT["forward"][1]),
-		// 	len(record_TGT["forward"][2]),
-		// 	len(record_TGC["forward"][0]),
-		// 	len(record_TGC["forward"][1]),
-		// 	len(record_TGC["forward"][2]),
-		// 	subset(toxin, difList(record_cys["forward"][0])),
-		// 	subset(toxin, difList(record_cys["forward"][1])),
-		// 	subset(toxin, difList(record_cys["forward"][2])))
-
-		// p(record.id, difList(record_cys["forward"][0]),
-		// 	difList(record_cys["forward"][1]),
-		// 	difList(record_cys["forward"][2]))
-
-		// p(record_cys["forward"][2])
-
-		// if subset(toxin, difList(record_cys["forward"][2])) != [2]int{0, 0} {
-		// 	p(toxin)
-		// 	p("cys_pos:", record_cys["forward"][2])
-		// 	p("cys_dist:", difList(record_cys["forward"][2]))
-		// 	left := subset(toxin, difList(record_cys["forward"][2]))[0]
-		// 	right := subset(toxin, difList(record_cys["forward"][2]))[1]
-		// 	p("left_pos:", left, "right_pos:", right)
-		// 	p("left_value:", record_cys["forward"][2][left], "right_value:", record_cys["forward"][2][right])
-		// 	// p(record.id, record.seq[record_cys["forward"][2][left]:record_cys["forward"][2][right]+3])
+		record_ACA := codoncount(record.seq, "ACA")
+		record_GCA := codoncount(record.seq, "GCA")
+		// if false {
+		// 	p(record_ACA, record_GCA)
 		// }
+		var record_cys = map[string]map[int][]int{
+			"forward": map[int][]int{},
+			"reverse": map[int][]int{},
+		}
+		// record_cys["forward"][0] = make([]int, 0)
+		// record_cys["forward"][1] = make([]int, 0)
+		// record_cys["forward"][2] = make([]int, 0)
+		// record_cys["reverse"][0] = make([]int, 0)
+		// record_cys["reverse"][1] = make([]int, 0)
+		// record_cys["reverse"][2] = make([]int, 0)
+		// record_cys["forward"][0] = append(record_TGC)
+		// record_cys["reverse"] =
 
-		// p(record_cys["forward"][2][subset(toxin, difList(record_cys["forward"][2]))[0]])
-		// p(record_cys)
-		// p(difList(record_cys["forward"][0]))
-		// p(difList(record_cys["forward"][1]))
-		// p(difList(record_cys["forward"][2]))
+		for reading_frame := 0; reading_frame <= 2; reading_frame++ {
+			// record_cys["forward"][reading_frame] = make([]int, 0)
+			record_cys["forward"][reading_frame] = append(record_TGT[reading_frame], record_TGC[reading_frame]...)
+			// record_cys["reverse"][reading_frame] = make([]int, 0)
+			record_cys["reverse"][reading_frame] = append(record_ACA[reading_frame], record_GCA[reading_frame]...)
+			// p(record_cys)
+			sort.Ints(record_cys["forward"][reading_frame])
+			sort.Ints(record_cys["reverse"][reading_frame])
+			for pattern, toxin := range patterns {
+				// rev_toxin := reverse(toxin)
+				// p("toxin:", toxin, "reverse:", rev_toxin)
+				// p(pattern, toxin)
+				if len(getMatches(toxin, difList(record_cys["forward"][reading_frame]))) > 0 {
+					for _, match_pair := range getMatches(toxin, difList(record_cys["forward"][reading_frame])) {
 
-		// p(subset(toxin, difList(record_cys["forward"][0])))
-		// p(subset(toxin, difList(record_cys["forward"][1])))
-		// p(toxin, "\n", difList(record_cys["forward"][2]))
-		// p(subset(toxin, difList(record_cys["forward"][2])))
-		// record_forward_0 := append(record_TGT["forward"][0], record_TGC["forward"][0]...)
-		// record_forward_1 := append(record_TGT["forward"][1], record_TGC["forward"][1]...)
-		// record_forward_2 := append(record_TGT["forward"][2], record_TGC["forward"][2]...)
-		// p(record_forward_0, record_forward_1, record_forward_2)
-		// p(record_TGT["forward"][2])
+						left := record_cys["forward"][reading_frame][match_pair[0]]
+						right := record_cys["forward"][reading_frame][match_pair[1]]
+						p(record.id, "+", reading_frame, left, right, pattern, record.seq[left:right+3])
+						// p("reverse:", reverseCompliment(record.seq))
+						// p(left, right)
+						// p(record.seq[left : right+3])
+						// p(record_cys["forward"][reading_frame][match_pair[0]], record_cys["forward"][reading_frame][match_pair[1]])
+					}
 
-	}
-	// true_thing := []int{6, 6, 1, 0, 5, 1, 6, 1, 11, 5, 10, 3, 3}
-	// new_thing := []int{6, 6, 1, 0, 5, 1, 6, 1, 11, 5, 10, 3, 3, -1}
-	// p(getMatches(toxin, new_thing))
+					// p(record.id, reading_frame, getMatches(toxin, difList(record_cys["forward"][reading_frame])), pattern)
+				} // end forward
+
+				// if Equal(toxin, []int{6, 6, 1, 0, 5, 1, 6, 1, 11, 5, 10, 3, 3}) {
+				// 	p("Reversing toxin:", toxin,)
+				//
+				// 	// p(" is now", reverse(toxin))
+				// 	// toxin = reverse(toxin)
+				// 	// p(" is now", toxin)
+				// 	p(record.id, reading_frame, difList(record_cys["reverse"][reading_frame]))
+				// 	p(getMatches(reverse(toxin), difList(record_cys["reverse"][reading_frame])))
+				//
+				// }
+				toxin = reverse(toxin)
+				if len(getMatches(toxin, difList(record_cys["reverse"][reading_frame]))) > 0 {
+					for _, match_pair := range getMatches(toxin, difList(record_cys["reverse"][reading_frame])) {
+
+						left := record_cys["reverse"][reading_frame][match_pair[0]]
+						right := record_cys["reverse"][reading_frame][match_pair[1]]
+						p(record.id, "-", reading_frame, left, right, pattern, record.seq[left:right+3])
+						// p("reverse:", reverseCompliment(record.seq))
+						// p(left, right)
+						// p(record.seq[left : right+3])
+						// p(record_cys["forward"][reading_frame][match_pair[0]], record_cys["forward"][reading_frame][match_pair[1]])
+					}
+				} // end reverse
+
+			} // end toxin pattern for loop
+
+			// p("Checking reverse:", record.id, record_cys["reverse"][reading_frame], difList(record_cys["reverse"][reading_frame]))
+		} // end reading_frame for loop
+		// p(record.id, record_cys)
+
+	} // end fasta iterater
+
+	// p(patterns["C-6-C-5-C-0-C-4-C-8-C"])
+
+	// codon := "TGC"
+	// p(reverseCompliment("TGC"))
+	// test_toxin := []int{6, 6, 1, 0, 5, 1, 6, 1, 11, 5, 10, 3, 3}
+	//
+	// p(test_toxin)
+	// p(reverse(test_toxin))
+
 }
