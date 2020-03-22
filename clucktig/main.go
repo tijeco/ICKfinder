@@ -294,6 +294,9 @@ func reverse(numbers []int) []int {
 }
 
 func main() {
+	var right_seq, left_seq string
+
+	p(right_seq, left_seq)
 	// toxin := []int{6, 6, 0, 4, 6}
 	// toxin := []int{6, 6, 1, 0, 5, 1, 6, 1, 11, 5, 10, 3, 3}
 	// p(toxin)
@@ -340,14 +343,63 @@ func main() {
 			sort.Ints(record_cys["reverse"][reading_frame])
 
 			for pattern, toxin := range patterns {
+				var start_found, stop_found bool
+
 				toxin_matches := nearMatches(toxin, difList(record_cys["forward"][reading_frame]))
 				if len(toxin_matches) > 0 {
 					for _, match_pair := range toxin_matches {
 
 						left := record_cys["forward"][reading_frame][match_pair[0]]
 						right := record_cys["forward"][reading_frame][match_pair[1]]
-						p(record.id, "+", reading_frame, left, right, pattern, record.seq[left:right+3])
-					}
+
+						// p(record.id, "+", reading_frame, left, right, pattern, record.seq[left:right+3])
+						// check for ORF below
+						if len(record.seq[:left]) >= 150 {
+							// p(record.seq[149:left])
+							// p("left:", len(record.seq[149:left]), record.seq[149:left])
+							// p(codoncount(record.seq[149:left], "ATG"))
+							// p(len(codoncount(record.seq[149:left], "ATG")[0]))
+							if len(codoncount(record.seq[149:left], "ATG")[0]) > 0 {
+								// p("Start found within 50 AA")
+								start_found = true
+							}
+						} else {
+							// p("frame", reading_frame, len(record.seq[reading_frame:left]))
+							if len(codoncount(record.seq[reading_frame:left], "ATG")[0]) > 0 {
+								// p("Start found between here and beginning")
+								start_found = true
+							}
+						} // end check start
+						// p("Stop:", len(record.seq[right:]), record.seq[right:])
+						if len(record.seq[right:]) >= 150 {
+							// p(record.seq[right : right+150])
+							// p(len(record.seq[right : right+150]))
+							if len(codoncount(record.seq[right+3:right+150], "TAA")[0]) > 0 || len(codoncount(record.seq[right+3:right+150], "TAG")[0]) > 0 || len(codoncount(record.seq[right+3:right+150], "TGA")[0]) > 0 {
+								stop_found = true
+								// p(record.seq[right+3 : right+150])
+								// p("Stop found!")
+
+							}
+						} else {
+							// p(len(record.seq[right:len(record.seq)]), record.seq[right:len(record.seq)])
+							// p(len(record.seq[right+3:len(record.seq)]), record.seq[right+3:len(record.seq)])
+							//
+							// p(codoncount(record.seq[right+3:len(record.seq)], "TAA"))
+							// p(codoncount(record.seq[right+3:len(record.seq)], "TAG"))
+							// p(codoncount(record.seq[right+3:len(record.seq)], "TGA"))
+							// p("Stop_found:", len(codoncount(record.seq[right+3:len(record.seq)], "TAA")) > 0 || len(codoncount(record.seq[right+3:len(record.seq)], "TAG")) > 0 || len(codoncount(record.seq[right+3:len(record.seq)], "TGA")) > 0)
+							// right_seq := record.seq[right+3 : len(record.seq)]
+							if len(codoncount(record.seq[right+3:len(record.seq)], "TAA")[0]) > 0 || len(codoncount(record.seq[right+3:len(record.seq)], "TAG")[0]) > 0 || len(codoncount(record.seq[right+3:len(record.seq)], "TGA")[0]) > 0 {
+								// p("Stop found!!!")
+								stop_found = true
+
+							}
+
+						} // end check stop
+						p(record.id, "+", reading_frame, left, right, start_found && stop_found, pattern, record.seq[left:right+3])
+						// p("Start:", start_found, "Stop:", stop_found)
+						// p("ORF:", start_found && stop_found)
+					} // end for match_pair
 
 				} // end forward
 
@@ -359,9 +411,51 @@ func main() {
 
 						left := record_cys["reverse"][reading_frame][match_pair[0]]
 						right := record_cys["reverse"][reading_frame][match_pair[1]]
-						p(record.id, "-", reading_frame, left, right, pattern, record.seq[left:right+3])
+						// p(record.id, "-", reading_frame, left, right, pattern, record.seq[left:right+3])
+						// check for ORFs below
+						// p("left:", left, "right:", right, len(record.seq))
+						// p(record.seq[right+3:])
+						if len(record.seq[right+3:]) > 150 {
+							right_seq = record.seq[right+3 : right+150]
+							// p(len(right_seq), right_seq)
+							// p(codoncount(right_seq, "CAT"))
+							if len(codoncount(right_seq, "CAT")[0]) > 0 {
+								start_found = true
+							}
+
+						} else {
+							right_seq = record.seq[right+3:]
+							if len(codoncount(right_seq, "CAT")[0]) > 0 {
+								start_found = true
+							}
+						}
+						// p("Left:", left, record.seq[:left])
+						if len(record.seq[:left]) < 150 {
+							left_seq = record.seq[reading_frame:left]
+							// p(len(left_seq), left_seq)
+							// p(codoncount(left_seq, "TTA"))
+							// p(codoncount(left_seq, "CTA"))
+							// p(codoncount(left_seq, "TCA"))
+							if len(codoncount(left_seq, "TTA")[0]) > 0 || len(codoncount(left_seq, "CTA")[0]) > 0 || len(codoncount(left_seq, "TCA")[0]) > 0 {
+								stop_found = true
+							}
+						} else {
+							left_seq = record.seq[left-150 : left-3]
+							// p("Long:", len(left_seq), left_seq)
+							// p(codoncount(left_seq, "TTA"))
+							// p(codoncount(left_seq, "CTA"))
+							// p(codoncount(left_seq, "TCA"))
+							if len(codoncount(left_seq, "TTA")[0]) > 0 || len(codoncount(left_seq, "CTA")[0]) > 0 || len(codoncount(left_seq, "TCA")[0]) > 0 {
+								stop_found = true
+							}
+
+						}
+						p(record.id, "-", reading_frame, left, right, start_found && stop_found, pattern, record.seq[left:right+3])
+						// p("Start:", start_found, "Stop:", stop_found)
+						// p("ORF:", start_found && stop_found)
 
 					}
+
 				} // end reverse
 
 			} // end toxin pattern for loop
