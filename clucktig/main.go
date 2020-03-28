@@ -8,6 +8,7 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"math"
 	"os"
 	"sort"
 	"strings"
@@ -293,6 +294,67 @@ func reverse(numbers []int) []int {
 	return newNumbers
 }
 
+func translate(s string) string {
+	// n := map[string]string{"foo": 1, "bar": 2}
+	// if len(s%3) != 0 {
+	// 	return "", error
+	// }
+	var aaSeq strings.Builder
+	codon_map := map[string]string{
+		"GCT": "A", "GCC": "A", "GCA": "A", "GCG": "A",
+		"CGT": "R", "CGC": "R", "CGA": "R", "CGG": "R", "AGA": "R", "AGG": "R",
+		"AAT": "N", "AAC": "N",
+		"GAT": "D", "GAC": "D",
+		"TGT": "C", "TGC": "C",
+		"CAA": "Q", "CAG": "Q",
+		"GAA": "E", "GAG": "E",
+		"GGT": "G", "GGC": "G", "GGA": "G", "GGG": "G",
+		"CAT": "H", "CAC": "H",
+		"ATT": "I", "ATC": "I", "ATA": "I",
+		"TTA": "L", "TTG": "L", "CTT": "L", "CTC": "L", "CTA": "L", "CTG": "L",
+		"AAA": "K", "AAG": "K",
+		"ATG": "M",
+		"TTT": "F", "TTC": "F",
+		"CCT": "P", "CCC": "P", "CCA": "P", "CCG": "P",
+		"TCA": "S", "TCT": "S", "TCC": "S", "TCG": "S", "AGT": "S", "AGC": "S",
+		"ACT": "T", "ACC": "T", "ACA": "T", "ACG": "T",
+		"TAA": "*", "TGA": "*", "TAG": "*",
+		"TGG": "W",
+		"TAT": "Y", "TAC": "Y",
+		"GTA": "V", "GTT": "V", "GTC": "V", "GTG": "V"}
+
+	// p(codon_map)
+	strLength := len(s)
+	splitedLength := int(math.Ceil(float64(strLength) / float64(3)))
+	var start, stop int
+	for i := 0; i < splitedLength; i += 1 {
+		start = i * 3
+		stop = start + 3
+		if stop > strLength {
+			stop = strLength
+		}
+		current_codon := s[start:stop]
+		// p(current_codon)
+		if aa, found := codon_map[current_codon]; found {
+			aaSeq.WriteString(aa)
+		} else {
+			aaSeq.WriteString("X")
+		}
+		// aaSeq.WriteString(codon_map[current_codon])
+	}
+
+	// var str strings.Builder
+
+	// for i := 0; i < 1000; i++ {
+	//     str.WriteString("a")
+	// }
+
+	// fmt.Println(str.String())
+
+	return aaSeq.String()
+
+}
+
 func main() {
 	var right_seq, left_seq string
 
@@ -396,7 +458,7 @@ func main() {
 							}
 
 						} // end check stop
-						p(record.id, "+", reading_frame, left, right, start_found && stop_found, pattern, record.seq[left:right+3])
+						p(record.id, "+", reading_frame, left, right, start_found && stop_found, pattern, record.seq[left:right+3], translate(record.seq[left:right+3]))
 						// p("Start:", start_found, "Stop:", stop_found)
 						// p("ORF:", start_found && stop_found)
 					} // end for match_pair
@@ -450,7 +512,7 @@ func main() {
 							}
 
 						}
-						p(record.id, "-", reading_frame, left, right, start_found && stop_found, pattern, record.seq[left:right+3])
+						p(record.id, "-", reading_frame, left, right, start_found && stop_found, pattern, record.seq[left:right+3], translate(reverseCompliment(record.seq[left:right+3])))
 						// p("Start:", start_found, "Stop:", stop_found)
 						// p("ORF:", start_found && stop_found)
 
@@ -463,6 +525,9 @@ func main() {
 		} // end reading_frame for loop
 
 	} // end fasta iterater
+
+	// thingy := translate("ATNTAG")
+	// p(thingy)
 
 	// new_jsonFile, err := os.Open("clucktig_general.json")
 	// // if we os.Open returns an error then handle it
