@@ -10,7 +10,9 @@ import (
 	"log"
 	"math"
 	"os"
+	"os/exec"
 	"sort"
+	"strconv"
 	"strings"
 )
 
@@ -146,14 +148,6 @@ func codoncount(s, substr string) map[int][]int {
 		// reverse will have to be dealt with slightly differently
 	} // end for
 }
-
-// the below function can be modified to allow for partial matches
-// just need to also figure out a way to modify the pattern string so that I can keep up with which matches are modified
-// I also need to think about how parial matches of one pattern can cause it to look like another pattern
-// I don't want a pattern to be searched or at least reported twice
-// i.e [6,5,0,4,8] vs [6,5,0,3,8]
-// perhaps it isn't possible to only search one pattern once
-// if I store the results in a map, that will prevent them being reported Multiple times
 
 func closeEnough(a []int, b [][2]int) bool {
 	if len(a) != len(b) {
@@ -299,7 +293,7 @@ func translate(s string) string {
 	// if len(s%3) != 0 {
 	// 	return "", error
 	// }
-	var aaSeq strings.Builder
+	var aaSeq bytes.Buffer
 	codon_map := map[string]string{
 		"GCT": "A", "GCC": "A", "GCA": "A", "GCG": "A",
 		"CGT": "R", "CGC": "R", "CGA": "R", "CGG": "R", "AGA": "R", "AGG": "R",
@@ -343,17 +337,211 @@ func translate(s string) string {
 		// aaSeq.WriteString(codon_map[current_codon])
 	}
 
-	// var str strings.Builder
-
-	// for i := 0; i < 1000; i++ {
-	//     str.WriteString("a")
-	// }
-
-	// fmt.Println(str.String())
-
 	return aaSeq.String()
 
 }
+
+func general2specific(general []int) string {
+	var specific bytes.Buffer
+	for _, num := range general {
+		specific.WriteString("-C-" + strconv.Itoa(num))
+	}
+	return specific.String()[1:] + "-C"
+}
+
+func getIntrons(s, strand string) [][2]int {
+	// var s_pos int
+	var coordinates [][2]int
+	// var donor, acceptor, intron string
+	var donor, acceptor string
+	if strand == "+" {
+		donor = "GT"
+		acceptor = "AG"
+	} else if strand == "-" {
+		donor = "CT"
+		acceptor = "AC"
+	}
+	s_original := s
+	len_s := len(s)
+	// p(1, s)
+	for {
+		donor_pos := strings.Index(s, donor)
+		orig_donor := (len_s - len(s)) + donor_pos
+		if donor_pos != -1 {
+			s = s[donor_pos:]
+			// p(2, s)
+			for {
+				acceptor_pos := strings.Index(s, acceptor)
+				// orig_acceptor := (len_s - len(s)) + acceptor_pos + 2
+				orig_acceptor := (len_s - len(s)) + acceptor_pos + 1
+				if acceptor_pos != -1 {
+					coordinates = append(coordinates, [2]int{orig_donor, orig_acceptor})
+					s = s[acceptor_pos+1:]
+					// p(3, s)
+				} else {
+					s = s_original[orig_donor+2:]
+					// p(4, s)
+					break
+				}
+			}
+		} else {
+			return coordinates
+		}
+	}
+
+} // end getIntrons
+
+func get_start_exons(seq, strand string, introns [][2]int) map[[2]int]bool {
+	var out_exons map[[2]int]bool
+	out_exons = make(map[[2]int]bool)
+	var possible_starts map[int][]int
+	for intron := range introns {
+		possible_exon := seq[:introns[intron][0]]
+		if strand == "+" {
+			possible_starts = codoncount(possible_exon, "ATG")
+			// p("possible_starts", possible_starts)
+		} else if strand == "-" {
+			possible_starts = codoncount(possible_exon, "CAT")
+		}
+		if len(possible_starts) > 0 {
+			for rf := range possible_starts {
+				for start := range possible_starts[rf] {
+					out_exons[[2]int{possible_starts[rf][start], introns[intron][0] - 1}] = true
+				}
+			}
+		}
+
+	}
+	return out_exons
+}
+
+func get_stop_exons(introns [][2]int, n int) map[[2]int]bool {
+	var out_exons map[[2]int]bool
+	out_exons = make(map[[2]int]bool)
+
+	for intron := range introns {
+		// out_exons = append(out_exons, [2]int{introns[intron][1] + 1, n - 1})
+		out_exons[[2]int{introns[intron][1] + 1, n - 1}] = true
+	}
+	return out_exons
+}
+
+func get_internal_exons(introns [][2]int) map[[4]int]bool {
+	var out_exons map[[4]int]bool
+	out_exons = make(map[[4]int]bool)
+	// p(1, introns)
+	for intron := range introns {
+		// p(2, intron)
+		exon_start := introns[intron][1]
+		// p(3, exon_start)
+		for next_intron := range introns[intron+1:] {
+			// p(introns[intron], introns[intron+1:][next_intron])
+			// p(4, next_intron)
+			exon_stop := introns[intron+1:][next_intron][0]
+			// p(5, exon_stop)
+			// p(6, exon_stop > exon_start)
+			if exon_stop > exon_start {
+				intron_1 := introns[intron]
+				intron_2 := introns[intron+1:][next_intron]
+				out_exons[[4]int{intron_1[0], intron_1[1], intron_2[0], intron_2[1]}] = true
+
+			}
+		}
+	}
+	return out_exons
+}
+
+func get_cds(starts, stops map[[2]int]bool, inners map[[4]int]bool) [][]int {
+	var out_cds [][]int
+	// p("starts", starts)
+	for start := range starts {
+		// p("start", start)
+		start_cds := []int{start[0], start[1]}
+		// p(0, "start_cds", start_cds)
+		// start_cds = append(start_cds, start...)
+		// p("stops", stops)
+		for stop := range stops {
+			// p("stop", stop)
+			if start[1] == stop[0]-1 {
+				if (stop[0]-start[0])%3 == 0 {
+					out_cds = append(out_cds, []int{start[0], start[1], stop[0], stop[1]})
+					// p(1, "out_cds", out_cds)
+					// out_cds = append(out_cds, []int{stop[0],stop[1]})
+					// return out_cds
+					// break
+
+					// return out_cds
+				}
+			} else if start[1] > stop[0] {
+				// p(1, "evaluate", start[1], ">", stop[0])
+				continue
+			} else {
+				// p("inners", inners)
+				for inner := range inners {
+					// p("inner", inner)
+					// p(2, "evaluate", inner[0], start_cds[len(start_cds)-1]+1)
+					if inner[0] == start_cds[len(start_cds)-1]+1 { // does inner plug into start
+						// p(3, "evaluate", inner[len(start_cds)-1], stop[0]-1)
+						if inner[len(inner)-1] == stop[0]-1 { // does inner plug into stop
+
+							start_cds = append(start_cds, inner[:]...)
+							len_exon := (start_cds[1] + 1) - start_cds[0]
+							// p(1, "start_cds", start_cds, start_cds[2:], len_exon)
+
+							for i := range start_cds[2:] {
+								// p("i", i)
+								// p(4, "evaluate", i+4, len(start_cds))
+								if i+4 <= len(start_cds[2:]) {
+									len_exon += (start_cds[2:][i+2]) - (start_cds[2:][i+1] + 1)
+									// p("len_exon", start_cds[2:][i+2], start_cds[2:][i+1], (start_cds[2:][i+2]+1)-start_cds[2:][i+1], len_exon)
+									i += 4
+								}
+							}
+							// p(5, "evaluate", len_exon, stop[1], stop[0], (len_exon + (stop[1] - stop[0])))
+							if (len_exon+((stop[1]+1)-stop[0]))%3 == 0 {
+								start_cds = append(start_cds, stop[:]...)
+								out_cds = append(out_cds, start_cds[:])
+								// out_cds = append(out_cds, stop[:])
+								// return out_cds
+							}
+						}
+					} else { // might need elif here --> if start_cds[-2] == inner[0] or something like that
+
+						start_cds = append(start_cds, inner[:]...)
+						// p(2, "start_cds", start_cds)
+					}
+
+				} // end for inner
+			}
+
+		} // end for stop
+	} // end for start
+	return out_cds
+} // end get_cds
+
+func get_orf(seq, strand string) [][]int {
+	introns := getIntrons(seq, strand)
+	p("introns", introns)
+	start_exons := get_start_exons(seq, strand, introns)
+	p("start_exons", start_exons)
+	stop_exons := get_stop_exons(introns, len(seq))
+	p("stop_exons", stop_exons)
+	internal_exons := get_internal_exons(introns)
+	p("internal_exons", internal_exons)
+
+	cds := get_cds(start_exons, stop_exons, internal_exons)
+	return cds
+}
+
+// func possibleExons(introns [][2]int , s string) {
+//
+// }
+
+// this goves the coordinates of all non-overlapping introns
+//  I think what I need instead is also overlapping??
+// meaning nXnGTnYnGTnZnAG could yield nXnGTnYnGTnZnAG or nYnGTnZnAG
+// such that nYnGTnZn is ignored
+// because it seems unlikely that zero GTs fall within an intronic sequence
 
 func main() {
 	var right_seq, left_seq string
@@ -376,6 +564,7 @@ func main() {
 	byteValue, _ := ioutil.ReadAll(jsonFile)
 
 	var patterns map[string][][2]int
+	var list_of_cys []int
 	json.Unmarshal([]byte(byteValue), &patterns)
 
 	fastaFh, err := os.Open(os.Args[1])
@@ -405,9 +594,10 @@ func main() {
 			sort.Ints(record_cys["reverse"][reading_frame])
 
 			for pattern, toxin := range patterns {
-				var start_found, stop_found bool
+				var stop_found bool
 
-				toxin_matches := nearMatches(toxin, difList(record_cys["forward"][reading_frame]))
+				list_of_cys = difList(record_cys["forward"][reading_frame])
+				toxin_matches := nearMatches(toxin, list_of_cys)
 				if len(toxin_matches) > 0 {
 					for _, match_pair := range toxin_matches {
 
@@ -415,27 +605,27 @@ func main() {
 						right := record_cys["forward"][reading_frame][match_pair[1]]
 
 						// p(record.id, "+", reading_frame, left, right, pattern, record.seq[left:right+3])
+
 						// check for ORF below
-						if len(record.seq[:left]) >= 150 {
-							// p(record.seq[149:left])
-							// p("left:", len(record.seq[149:left]), record.seq[149:left])
-							// p(codoncount(record.seq[149:left], "ATG"))
-							// p(len(codoncount(record.seq[149:left], "ATG")[0]))
-							if len(codoncount(record.seq[149:left], "ATG")[0]) > 0 {
-								// p("Start found within 50 AA")
-								start_found = true
-							}
-						} else {
-							// p("frame", reading_frame, len(record.seq[reading_frame:left]))
-							if len(codoncount(record.seq[reading_frame:left], "ATG")[0]) > 0 {
-								// p("Start found between here and beginning")
-								start_found = true
-							}
-						} // end check start
+						// if len(record.seq[:left]) >= 150 {
+						// 	// p(record.seq[149:left])
+						// 	// p("left:", len(record.seq[149:left]), record.seq[149:left])
+						// 	// p(codoncount(record.seq[149:left], "ATG"))
+						// 	// p(len(codoncount(record.seq[149:left], "ATG")[0]))
+						// 	if len(codoncount(record.seq[149:left], "ATG")[0]) > 0 {
+						// 		// p("Start found within 50 AA")
+						// 		start_found = true
+						// 	}
+						// } else {
+						// 	// p("frame", reading_frame, len(record.seq[reading_frame:left]))
+						// 	if len(codoncount(record.seq[reading_frame:left], "ATG")[0]) > 0 {
+						// 		// p("Start found between here and beginning")
+						// 		start_found = true
+						// 	}
+						// } // end check start
+
 						// p("Stop:", len(record.seq[right:]), record.seq[right:])
 						if len(record.seq[right:]) >= 150 {
-							// p(record.seq[right : right+150])
-							// p(len(record.seq[right : right+150]))
 							if len(codoncount(record.seq[right+3:right+150], "TAA")[0]) > 0 || len(codoncount(record.seq[right+3:right+150], "TAG")[0]) > 0 || len(codoncount(record.seq[right+3:right+150], "TGA")[0]) > 0 {
 								stop_found = true
 								// p(record.seq[right+3 : right+150])
@@ -458,7 +648,9 @@ func main() {
 							}
 
 						} // end check stop
-						p(record.id, "+", reading_frame, left, right, start_found && stop_found, pattern, record.seq[left:right+3], translate(record.seq[left:right+3]))
+						internal_stops := strings.Count(translate(record.seq[left:right+3]), "*")
+						p(record.id, "+", reading_frame, left, right, stop_found, internal_stops, pattern, general2specific(list_of_cys[match_pair[0]:match_pair[1]]), record.seq[left:right+3], translate(record.seq[left:right+3]))
+						// p(match_pair, general2specific(list_of_cys[match_pair[0]:match_pair[1]]))
 						// p("Start:", start_found, "Stop:", stop_found)
 						// p("ORF:", start_found && stop_found)
 					} // end for match_pair
@@ -466,7 +658,8 @@ func main() {
 				} // end forward
 
 				toxin = reverse_pairs(toxin)
-				toxin_matches = nearMatches(toxin, difList(record_cys["reverse"][reading_frame]))
+				list_of_cys = difList(record_cys["reverse"][reading_frame])
+				toxin_matches = nearMatches(toxin, list_of_cys)
 				// getMatches(toxin, difList(record_cys["reverse"][reading_frame]))
 				if len(toxin_matches) > 0 {
 					for _, match_pair := range toxin_matches {
@@ -474,47 +667,41 @@ func main() {
 						left := record_cys["reverse"][reading_frame][match_pair[0]]
 						right := record_cys["reverse"][reading_frame][match_pair[1]]
 						// p(record.id, "-", reading_frame, left, right, pattern, record.seq[left:right+3])
+
 						// check for ORFs below
 						// p("left:", left, "right:", right, len(record.seq))
 						// p(record.seq[right+3:])
-						if len(record.seq[right+3:]) > 150 {
-							right_seq = record.seq[right+3 : right+150]
-							// p(len(right_seq), right_seq)
-							// p(codoncount(right_seq, "CAT"))
-							if len(codoncount(right_seq, "CAT")[0]) > 0 {
-								start_found = true
-							}
+						// if len(record.seq[right+3:]) > 150 {
+						// 	right_seq = record.seq[right+3 : right+150]
+						// 	// p(len(right_seq), right_seq)
+						// 	// p(codoncount(right_seq, "CAT"))
+						// 	if len(codoncount(right_seq, "CAT")[0]) > 0 {
+						// 		start_found = true
+						// 	}
+						//
+						// } else {
+						// 	right_seq = record.seq[right+3:]
+						// 	if len(codoncount(right_seq, "CAT")[0]) > 0 {
+						// 		start_found = true
+						// 	}
+						// }
 
-						} else {
-							right_seq = record.seq[right+3:]
-							if len(codoncount(right_seq, "CAT")[0]) > 0 {
-								start_found = true
-							}
-						}
-						// p("Left:", left, record.seq[:left])
 						if len(record.seq[:left]) < 150 {
 							left_seq = record.seq[reading_frame:left]
-							// p(len(left_seq), left_seq)
-							// p(codoncount(left_seq, "TTA"))
-							// p(codoncount(left_seq, "CTA"))
-							// p(codoncount(left_seq, "TCA"))
+
 							if len(codoncount(left_seq, "TTA")[0]) > 0 || len(codoncount(left_seq, "CTA")[0]) > 0 || len(codoncount(left_seq, "TCA")[0]) > 0 {
 								stop_found = true
 							}
 						} else {
 							left_seq = record.seq[left-150 : left-3]
-							// p("Long:", len(left_seq), left_seq)
-							// p(codoncount(left_seq, "TTA"))
-							// p(codoncount(left_seq, "CTA"))
-							// p(codoncount(left_seq, "TCA"))
+
 							if len(codoncount(left_seq, "TTA")[0]) > 0 || len(codoncount(left_seq, "CTA")[0]) > 0 || len(codoncount(left_seq, "TCA")[0]) > 0 {
 								stop_found = true
 							}
 
 						}
-						p(record.id, "-", reading_frame, left, right, start_found && stop_found, pattern, record.seq[left:right+3], translate(reverseCompliment(record.seq[left:right+3])))
-						// p("Start:", start_found, "Stop:", stop_found)
-						// p("ORF:", start_found && stop_found)
+						p(record.id, "-", reading_frame, left, right, stop_found, strings.Count(translate(reverseCompliment(record.seq[left:right+3])), "*"), pattern, general2specific(reverse(list_of_cys[match_pair[0]:match_pair[1]])), record.seq[left:right+3], translate(reverseCompliment(record.seq[left:right+3])))
+						// p(record.id, "-", reading_frame, left, right, start_found && stop_found, strings.Count(translate(reverseCompliment(record.seq[left:right+3])), "*"), pattern, general2specific(reverse(list_of_cys[match_pair[0]:match_pair[1]])), record.seq[left:right+3], translate(reverseCompliment(record.seq[left:right+3])))
 
 					}
 
@@ -524,33 +711,97 @@ func main() {
 
 		} // end reading_frame for loop
 
+		// this is the end of the contig should now be able to evaluate data structure
+		// if the data structure has enough ICKs past a certain threshold
+		// look for gene models for each ICK
+
+		//  once the gene models have been evaluated
+		// I suppose they should just be written to a file
+		// the next step would be to align them with mafft
+		// I don't know if that can be done in GO...
+		// IT CANN!!!!! https://golang.org/pkg/os/exec/
+
 	} // end fasta iterater
+	// p(getIntrons("aGTbccaaqww100000000000mnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmmnmnmnmnmnmnmnmmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmncdAGefgaGTbccaaqww100000000000000mmmmmmmmmmmmmmmmmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmmnmnmnmnmnmnmnmmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmncdAGefg", "+"))
+	test_seq0 := "AGnn1nGTnnn2nnGTnn3nnnAGnn4nnAG"
+	test_introns0 := getIntrons(test_seq0, "+")
+	p(test_introns0)
+	p(test_seq0[test_introns0[0][0]:test_introns0[0][1]])
+	p(1, get_stop_exons(test_introns0, len(test_seq0)))
+	p(2, get_stop_exons([][2]int{{2, 3}, {6, 7}}, 10))
+	test_seq := "NATG012GTNNNNNNNNNNAG...GTNNNNNNNNAG345TAA"
+	test_introns := getIntrons(test_seq, "+")
+	test_stops := get_stop_exons(test_introns, len(test_seq))
 
-	// thingy := translate("ATNTAG")
-	// p(thingy)
+	test_internals := get_internal_exons(test_introns)
+	// p(get_start_exons(test_seq, "+", getIntrons(test_seq, "+")))
+	// p(3, test_introns)
+	// p("get_internal_exons")
+	// p(get_internal_exons(test_introns))
 
-	// new_jsonFile, err := os.Open("clucktig_general.json")
-	// // if we os.Open returns an error then handle it
-	// if err != nil {
-	// 	fmt.Println(err)
+	// p(get_cds([][2]int{{0, 1}}, [][2]int{{8, 9}, {4, 9}}, [][4]int{{2, 3, 6, 7}}))
+	test_starts := get_start_exons(test_seq, "+", test_introns)
+	p("test_introns")
+	p(test_introns)
+	p("test_internals")
+	p(test_internals)
+	p("test_stops")
+	p(test_stops) // // NOTE: this reports duplicates some times
+	p("test_starts")
+	p(test_starts) // // NOTE: this reports duplicates some times
+
+	// will need to make sure it doesn't exist in the list before it gets reported
+	// perhaps worth considering if it should be put in a map??, the search  time shouldn't be rediculous though
+
+	p(get_orf(test_seq, "+"))
+	test_seq_1 := "ATGTAA"
+	p(get_orf(test_seq_1, "+"))
+	test_seqs := []string{
+		"ATGTAA",
+		"ATG...TAA",
+		"ATGnnnNNNTAA",
+		"ATGnnnGTxxxxxxxxxxxxxxxxxAGNNNTAA",
+		"ATGnnnGTxxxxxxxxxxxxxxxxxAGnnnGTxxxxxxxxxxxxxxxxxAGNNNTAA",
+		"NATG012GTNNNNNNNNNNAG...GTNNNNNNNNAG345TAA",
+		"NATGnnnGTxxxxxxxxxxxxxAGnnnGTxxxxxxxxxxxxAGNNNTAA",
+		"NATGnnnGTxxxxxAGnnnGTxxxxxxxxAGnnnGTxxxxxxxAGnnnGTxxxxxAGNNNTAA",
+		"NATGnnnGTabcdefghijklmnopqrstuvwxyzAGnnnGTabcdefghijklmnopqrstuvwxyzAGNNNTAA"}
+	// p(test_seqs)
+	for _, test := range test_seqs {
+		p(test)
+		p(get_orf(test, "+"))
+
+	}
+	// if true {
+	// 	p("################ get_cds ################")
+	// 	test_cds := get_cds(test_starts, test_stops, test_internals)
+	//
+	// 	p(test_cds)
+	//
 	// }
-	// // fmt.Println("Successfully Opened clucktig.json")
-	// // defer the closing of our new_jsonFile so that we can parse it later on
-	// defer new_jsonFile.Close()
+
+	// p(getIntrons("AGnn1nGTnnn2nnGTnn3nnnAGnn4nnAG", "+")) // <-- doesn't find GTnnn2nnGTnn3nnnAGnn4nnAG or GTnn3nnnAGnn4nnAG
+	// [[4,20],[12,20],[4,27],[12,27]]
+
+	// getIntrons("AGnn1nGTnnn2nnGTnn3nnnAGnn4nnAG", "+") <-- breaks
 	//
-	// new_byteValue, _ := ioutil.ReadAll(new_jsonFile)
-	//
-	// var new_patterns map[string][][2]int
-	// json.Unmarshal([]byte(new_byteValue), &new_patterns)
-	// p(new_patterns)
-	// p(len(new_patterns["C-C-CC-C-C"]))
-	// p(new_patterns["C-C-CC-C-C"][0])
-	// p(new_patterns["C-C-CC-C-C"][0][0])
-	// p(new_patterns["C-C-CC-C-C"][0][1])
-	// test_num := 7
-	// p(test_num >= new_patterns["C-C-CC-C-C"][0][0])
-	// p(test_num <= new_patterns["C-C-CC-C-C"][0][1])
-	// p(test_num >= new_patterns["C-C-CC-C-C"][0][0] && test_num <= new_patterns["C-C-CC-C-C"][0][1])
-	// q_toxin := []int{6, 6, 1, 4, 6}
-	// p(closeEnough(q_toxin, new_patterns["C-C-CC-C-C"]))
+
+	path, err := exec.LookPath("mafft")
+	if err != nil {
+		log.Fatal("installing mafft is in your future")
+	}
+	fmt.Printf("mafft is available at %s\n", path)
+	cmd := exec.Command("sh", "-c", "mafft test.fa")
+	stdoutStderr, err := cmd.CombinedOutput()
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("%s\n", stdoutStderr)
+	for record := range parse(bytes.NewReader(stdoutStderr)) {
+		p(record.id)
+	}
+
+	// test_seq := "A"
+	// p(tes)
+
 }
