@@ -391,9 +391,9 @@ func getIntrons(s, strand string) [][2]int {
 
 } // end getIntrons
 
-func get_start_exons(seq, strand string, introns [][2]int) map[[2]int]bool {
-	var out_exons map[[2]int]bool
-	out_exons = make(map[[2]int]bool)
+func get_start_exons(seq, strand string, introns [][2]int) map[[3]int]bool {
+	var out_exons map[[3]int]bool
+	out_exons = make(map[[3]int]bool)
 	var possible_starts map[int][]int
 	for intron := range introns {
 		possible_exon := seq[:introns[intron][0]]
@@ -406,7 +406,8 @@ func get_start_exons(seq, strand string, introns [][2]int) map[[2]int]bool {
 		if len(possible_starts) > 0 {
 			for rf := range possible_starts {
 				for start := range possible_starts[rf] {
-					out_exons[[2]int{possible_starts[rf][start], introns[intron][0] - 1}] = true
+					out_exons[[3]int{possible_starts[rf][start], introns[intron][0], introns[intron][1]}] = true
+					// out_exons[[3]int{possible_starts[rf][start], introns[intron][0], introns[intron][1]}] = true
 				}
 			}
 		}
@@ -415,109 +416,262 @@ func get_start_exons(seq, strand string, introns [][2]int) map[[2]int]bool {
 	return out_exons
 }
 
-func get_stop_exons(introns [][2]int, n int) map[[2]int]bool {
-	var out_exons map[[2]int]bool
-	out_exons = make(map[[2]int]bool)
+func get_stop_exons(introns [][2]int, n int) map[[3]int]bool {
+	var out_exons map[[3]int]bool
+	out_exons = make(map[[3]int]bool)
 
 	for intron := range introns {
 		// out_exons = append(out_exons, [2]int{introns[intron][1] + 1, n - 1})
-		out_exons[[2]int{introns[intron][1] + 1, n - 1}] = true
+		out_exons[[3]int{introns[intron][0], introns[intron][1], n - 1}] = true
 	}
 	return out_exons
 }
 
-func get_internal_exons(introns [][2]int) map[[4]int]bool {
-	var out_exons map[[4]int]bool
-	out_exons = make(map[[4]int]bool)
-	// p(1, introns)
-	for intron := range introns {
-		// p(2, intron)
-		exon_start := introns[intron][1]
-		// p(3, exon_start)
-		for next_intron := range introns[intron+1:] {
-			// p(introns[intron], introns[intron+1:][next_intron])
-			// p(4, next_intron)
-			exon_stop := introns[intron+1:][next_intron][0]
-			// p(5, exon_stop)
-			// p(6, exon_stop > exon_start)
-			if exon_stop > exon_start {
-				intron_1 := introns[intron]
-				intron_2 := introns[intron+1:][next_intron]
-				out_exons[[4]int{intron_1[0], intron_1[1], intron_2[0], intron_2[1]}] = true
+// func get_internal_exons(introns [][2]int) map[[4]int]bool {
+// 	var out_exons map[[4]int]bool
+// 	out_exons = make(map[[4]int]bool)
+// 	// p(1, introns)
+// 	for intron := range introns {
+// 		// p(2, intron)
+// 		exon_start := introns[intron][1]
+// 		// p(3, exon_start)
+// 		for next_intron := range introns[intron+1:] {
+// 			// p(introns[intron], introns[intron+1:][next_intron])
+// 			// p(4, next_intron)
+// 			exon_stop := introns[intron+1:][next_intron][0]
+// 			// p(5, exon_stop)
+// 			// p(6, exon_stop > exon_start)
+// 			if exon_stop > exon_start {
+// 				intron_1 := introns[intron]
+// 				intron_2 := introns[intron+1:][next_intron]
+// 				out_exons[[4]int{intron_1[0], intron_1[1], intron_2[0], intron_2[1]}] = true
+//
+// 			}
+// 		}
+// 	}
+// 	return out_exons
+// }
+
+func valid_orf(orf []int) bool {
+	var is_valid bool
+	var len_orf int
+	if len(orf)%2 == 0 {
+		if len(orf) == 2 {
+			len_orf = (orf[1] + 1) - orf[0]
+			// no introns
+		} else {
+			// first is start, final is stop, all internal pairs are introns
+			// p("orf:", orf)
+			// for i, value := range orf {
+			for i := 0; i <= len(orf)-2; i += 2 {
+				value := orf[i]
+				// if value < len(orf)-1 {
+				// if i < len(orf)-1 {
+				if i == 0 || i == len(orf)-2 { // for start and stop
+					len_orf += orf[i+1] - value
+					// p(i, orf[i+1], value, len_orf)
+
+				} else { // for all internal intron pairs
+					len_orf += (orf[i+1] - 1) - value
+					// p(i, (orf[i+1] - 1), value, len_orf)
+
+				}
 
 			}
+			// add up length of all exons and set is_valid True if len%3 == 0
 		}
+		if len_orf%3 == 0 {
+			is_valid = true
+		}
+
+		// no introns
 	}
-	return out_exons
+	return is_valid
 }
 
-func get_cds(starts, stops map[[2]int]bool, inners map[[4]int]bool) [][]int {
+func get_cds(starts, stops map[[3]int]bool, introns [][2]int, seq string) [][]int {
 	var out_cds [][]int
-	// p("starts", starts)
+	var start_cds, orf []int
 	for start := range starts {
-		// p("start", start)
-		start_cds := []int{start[0], start[1]}
-		// p(0, "start_cds", start_cds)
-		// start_cds = append(start_cds, start...)
-		// p("stops", stops)
 		for stop := range stops {
-			// p("stop", stop)
-			if start[1] == stop[0]-1 {
-				if (stop[0]-start[0])%3 == 0 {
-					out_cds = append(out_cds, []int{start[0], start[1], stop[0], stop[1]})
-					// p(1, "out_cds", out_cds)
-					// out_cds = append(out_cds, []int{stop[0],stop[1]})
-					// return out_cds
-					// break
+			if Equal(start[:][1:], stop[:][:len(stop)-1]) { // one intron
+				// p(1, start, stop)
+				orf = append(start[:], stop[:][len(stop)-1])
+				// p(orf, orfSeq(seq, [][]int{orf}), valid_orf(orf))
+				if valid_orf(orf) {
+					out_cds = append(out_cds, orf)
 
-					// return out_cds
 				}
-			} else if start[1] > stop[0] {
-				// p(1, "evaluate", start[1], ">", stop[0])
+			} else if start[0] > stop[len(stop)-1] || start[1] > stop[0] || start[len(start)-1] > stop[0] {
+				// p(2, start, stop)
 				continue
 			} else {
-				// p("inners", inners)
-				for inner := range inners {
-					// p("inner", inner)
-					// p(2, "evaluate", inner[0], start_cds[len(start_cds)-1]+1)
-					if inner[0] == start_cds[len(start_cds)-1]+1 { // does inner plug into start
-						// p(3, "evaluate", inner[len(start_cds)-1], stop[0]-1)
-						if inner[len(inner)-1] == stop[0]-1 { // does inner plug into stop
+				// p(3, start, stop)
+				if valid_orf(append(start[:], stop[:]...)) {
+					out_cds = append(out_cds, append(start[:], stop[:]...))
+				}
+				for i, intron := range introns {
 
-							start_cds = append(start_cds, inner[:]...)
-							len_exon := (start_cds[1] + 1) - start_cds[0]
-							// p(1, "start_cds", start_cds, start_cds[2:], len_exon)
-
-							for i := range start_cds[2:] {
-								// p("i", i)
-								// p(4, "evaluate", i+4, len(start_cds))
-								if i+4 <= len(start_cds[2:]) {
-									len_exon += (start_cds[2:][i+2]) - (start_cds[2:][i+1] + 1)
-									// p("len_exon", start_cds[2:][i+2], start_cds[2:][i+1], (start_cds[2:][i+2]+1)-start_cds[2:][i+1], len_exon)
-									i += 4
+					if Equal(intron[:], start[:][1:]) || Equal(intron[:], stop[:][:len(stop)-1]) {
+						// p(1, start, intron, stop)
+						continue
+					} else if intron[0] < start[len(start)-1] || intron[1] > stop[0] {
+						// p(2, start, intron, stop)
+						continue
+					} else {
+						// p(3, start, intron, stop)
+						start_cds = append(start[:], intron[:]...)
+						orf = append(start_cds, stop[:]...)
+						// p(orf, orfSeq(seq, [][]int{orf}), valid_orf(orf))
+						if valid_orf(orf) {
+							out_cds = append(out_cds, orf)
+						}
+						for _, next_intron := range introns[i:] {
+							// p(intron, next_intron)
+							if Equal(next_intron[:], start_cds[:][len(start_cds)-2:]) || Equal(next_intron[:], stop[:][:len(stop)-1]) {
+								continue
+							} else if next_intron[0] < start_cds[len(start_cds)-1] || next_intron[1] > stop[0] {
+								continue
+							} else {
+								start_cds = append(start_cds, next_intron[:]...)
+								orf = append(start_cds, stop[:]...)
+								// p(orf, orfSeq(seq, [][]int{orf}), valid_orf(orf))
+								if valid_orf(orf) {
+									out_cds = append(out_cds, orf)
 								}
 							}
-							// p(5, "evaluate", len_exon, stop[1], stop[0], (len_exon + (stop[1] - stop[0])))
-							if (len_exon+((stop[1]+1)-stop[0]))%3 == 0 {
-								start_cds = append(start_cds, stop[:]...)
-								out_cds = append(out_cds, start_cds[:])
-								// out_cds = append(out_cds, stop[:])
-								// return out_cds
-							}
+
 						}
-					} else { // might need elif here --> if start_cds[-2] == inner[0] or something like that
-
-						start_cds = append(start_cds, inner[:]...)
-						// p(2, "start_cds", start_cds)
 					}
-
-				} // end for inner
+				}
 			}
 
-		} // end for stop
-	} // end for start
+		}
+	}
+	// 		if start[0] > stop[len(stop)-1] {
+	// 			continue
+	// 		} else if start[len(start)-1] > stop[0] {
+	// 			continue
+	// 		} else if Equal(start[1:][:], stop[:len(stop)-1][:]) { // one intron
+	// 			start_cds = append(start[:], stop[len(stop)-1])
+	// 			if valid_orf(start_cds) {
+	// 				out_cds = append(out_cds, start_cds)
+	// 				p(1, start, stop, start_cds, start_cds[:len(start_cds)-3])
+	//
+	// 			}
+	// 			start_cds = start_cds[:len(start_cds)-3]
+	// 			// if sum of length of the two exons are divisible by 3, return
+	// 		} else {
+	// 			if ((start[1]-start[0])+(stop[0]-start[len(start)-1]+1)+((stop[len(stop)-1]+1)-(stop[1]+1)))%3 == 0 { // two introns
+	//
+	// 			} else {
+	// 				for intron := range introns {
+	// 					if Equal(introns[intron][:], start[1:][:]) || Equal(introns[intron][:], stop[:len(stop)-1][:]) { // intron is already included in start or stop
+	// 						if Equal(introns[intron][:], start[1:][:]) { // intron included in start
+	// 							start_cds = append(start[:], stop[1:][:]...)
+	// 						} else { // intron included in stop
+	// 							start_cds = append(start[:len(start)-1][:], stop[:]...)
+	// 						}
+	// 					} else if introns[intron][0] > start[len(start)-1] {
+	// 						start_cds = append(start[:], introns[intron][:]...)
+	// 						start_cds = append(start_cds, stop[:]...)
+	// 						if valid_orf(start_cds) {
+	// 							out_cds = append(out_cds, start_cds)
+	// 							p(2, start, stop, start_cds, start_cds[:len(start_cds)-3])
+	//
+	// 						}
+	// 						start_cds = start_cds[:len(start_cds)-3]
+	// 						for i := range introns[intron:] {
+	// 							start_cds = append(start_cds, introns[intron:][i][:]...)
+	// 							start_cds = append(start_cds, stop[:]...)
+	// 							if valid_orf(start_cds) {
+	// 								out_cds = append(out_cds, start_cds)
+	// 								p(3, start, stop, start_cds, start_cds[:len(start_cds)-3])
+	//
+	// 							}
+	// 							start_cds = start_cds[:len(start_cds)-3]
+	//
+	// 							// check if putative exon_length is divisible by 3
+	// 							// afterwards, start_cds = append(start_cds,i[:]...)
+	// 						}
+	// 					}
+	// 				}
+	// 			}
+	//
+	// 		}
+	//
+	// 	}
+	// }
 	return out_cds
-} // end get_cds
+}
+
+// func get_cds(starts, stops map[[2]int]bool, inners map[[4]int]bool) [][]int {
+// 	var out_cds [][]int
+// 	// p("starts", starts)
+// 	for start := range starts {
+// 		// p("start", start)
+// 		start_cds := []int{start[0], start[1]}
+// 		// p(0, "start_cds", start_cds)
+// 		// start_cds = append(start_cds, start...)
+// 		// p("stops", stops)
+// 		for stop := range stops {
+// 			// p("stop", stop)
+// 			if start[1] == stop[0]-1 {
+// 				if (stop[0]-start[0])%3 == 0 {
+// 					out_cds = append(out_cds, []int{start[0], start[1], stop[0], stop[1]})
+// 					// p(1, "out_cds", out_cds)
+// 					// out_cds = append(out_cds, []int{stop[0],stop[1]})
+// 					// return out_cds
+// 					// break
+//
+// 					// return out_cds
+// 				}
+// 			} else if start[1] > stop[0] {
+// 				// p(1, "evaluate", start[1], ">", stop[0])
+// 				continue
+// 			} else {
+// 				// p("inners", inners)
+// 				for inner := range inners {
+// 					// p("inner", inner)
+// 					// p(2, "evaluate", inner[0], start_cds[len(start_cds)-1]+1)
+// 					if inner[0] == start_cds[len(start_cds)-1]+1 { // does inner plug into start
+// 						// p(3, "evaluate", inner[len(start_cds)-1], stop[0]-1)
+// 						if inner[len(inner)-1] == stop[0]-1 { // does inner plug into stop
+//
+// 							start_cds = append(start_cds, inner[:]...)
+// 							len_exon := (start_cds[1] + 1) - start_cds[0]
+// 							// p(1, "start_cds", start_cds, start_cds[2:], len_exon)
+//
+// 							for i := range start_cds[2:] {
+// 								// p("i", i)
+// 								// p(4, "evaluate", i+4, len(start_cds))
+// 								if i+4 <= len(start_cds[2:]) {
+// 									len_exon += (start_cds[2:][i+2]) - (start_cds[2:][i+1] + 1)
+// 									// p("len_exon", start_cds[2:][i+2], start_cds[2:][i+1], (start_cds[2:][i+2]+1)-start_cds[2:][i+1], len_exon)
+// 									i += 4
+// 								}
+// 							}
+// 							// p(5, "evaluate", len_exon, stop[1], stop[0], (len_exon + (stop[1] - stop[0])))
+// 							if (len_exon+((stop[1]+1)-stop[0]))%3 == 0 {
+// 								start_cds = append(start_cds, stop[:]...)
+// 								out_cds = append(out_cds, start_cds[:])
+// 								// out_cds = append(out_cds, stop[:])
+// 								// return out_cds
+// 							}
+// 						}
+// 					} else { // might need elif here --> if start_cds[-2] == inner[0] or something like that
+//
+// 						start_cds = append(start_cds, inner[:]...)
+// 						// p(2, "start_cds", start_cds)
+// 					}
+//
+// 				} // end for inner
+// 			}
+//
+// 		} // end for stop
+// 	} // end for start
+// 	return out_cds
+// } // end get_cds
 
 func get_orf(seq, strand string) [][]int {
 	introns := getIntrons(seq, strand)
@@ -526,11 +680,60 @@ func get_orf(seq, strand string) [][]int {
 	p("start_exons", start_exons)
 	stop_exons := get_stop_exons(introns, len(seq))
 	p("stop_exons", stop_exons)
-	internal_exons := get_internal_exons(introns)
-	p("internal_exons", internal_exons)
+	// internal_exons := get_internal_exons(introns)
+	// p("internal_exons", internal_exons)
 
-	cds := get_cds(start_exons, stop_exons, internal_exons)
+	cds := get_cds(start_exons, stop_exons, introns, seq)
 	return cds
+}
+func orfSeq(seq string, orfs [][]int) []string {
+	var seqList []string
+	// p("seq", seq)
+	for _, orf := range orfs {
+		// p(coordinates)
+		if len(orf)%2 == 0 {
+			if len(orf) == 2 {
+				// len_orf = (orf[1] + 1) - orf[0]
+				seqList = append(seqList, seq[orf[0]:orf[1]+1])
+				// no introns
+			} else {
+				// first is start, final is stop, all internal pairs are introns
+				seq2write := ""
+
+				// p("orf", orf)
+				for i := 0; i <= len(orf)-2; i += 2 {
+					value := orf[i]
+					// for i, value := range orf {
+					// if value < len(orf)-1 {
+					if i == 0 || i == len(orf)-2 { // for start and stop
+						// len_orf += orf[i+1] - value
+						if i == 0 { // start
+							// p(i, value, orf[i+1], seq[value:orf[i+1]])
+							seq2write += seq[value:orf[i+1]]
+						} else { // stop
+							// p(i, value+1, orf[i+1], seq[value+1:orf[i+1]+1])
+							seq2write += seq[value+1 : orf[i+1]+1]
+						}
+
+					} else { // for all internal intron pairs
+						// len_orf += (orf[i+1] - 1) - value
+						// p(i, value+1, orf[i+1], seq[value+1:orf[i+1]])
+						seq2write += seq[value+1 : orf[i+1]]
+					}
+
+				}
+				seqList = append(seqList, seq2write)
+				// add up length of all exons and set is_valid True if len%3 == 0
+			}
+			// if len_orf%3 == 0 {
+			// 	is_valid = true
+			// }
+
+			// no introns
+		}
+	}
+
+	return seqList
 }
 
 // func possibleExons(introns [][2]int , s string) {
@@ -723,55 +926,76 @@ func main() {
 
 	} // end fasta iterater
 	// p(getIntrons("aGTbccaaqww100000000000mnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmmnmnmnmnmnmnmnmmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmncdAGefgaGTbccaaqww100000000000000mmmmmmmmmmmmmmmmmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmmnmnmnmnmnmnmnmmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmnmncdAGefg", "+"))
-	test_seq0 := "AGnn1nGTnnn2nnGTnn3nnnAGnn4nnAG"
-	test_introns0 := getIntrons(test_seq0, "+")
-	p(test_introns0)
-	p(test_seq0[test_introns0[0][0]:test_introns0[0][1]])
-	p(1, get_stop_exons(test_introns0, len(test_seq0)))
-	p(2, get_stop_exons([][2]int{{2, 3}, {6, 7}}, 10))
-	test_seq := "NATG012GTNNNNNNNNNNAG...GTNNNNNNNNAG345TAA"
-	test_introns := getIntrons(test_seq, "+")
-	test_stops := get_stop_exons(test_introns, len(test_seq))
-
-	test_internals := get_internal_exons(test_introns)
+	// test_seq0 := "AGnn1nGTnnn2nnGTnn3nnnAGnn4nnAG"
+	// test_introns0 := getIntrons(test_seq0, "+")
+	// p(test_introns0)
+	// p(test_seq0[test_introns0[0][0]:test_introns0[0][1]])
+	// p(1, get_stop_exons(test_introns0, len(test_seq0)))
+	// p(2, get_stop_exons([][2]int{{2, 3}, {6, 7}}, 10))
+	// test_seq := "NATG012GTNNNNNNNNNNAG...GTNNNNNNNNAG345TAA"
+	// test_introns := getIntrons(test_seq, "+")
+	// test_stops := get_stop_exons(test_introns, len(test_seq))
+	//
+	// test_internals := get_internal_exons(test_introns)
 	// p(get_start_exons(test_seq, "+", getIntrons(test_seq, "+")))
 	// p(3, test_introns)
 	// p("get_internal_exons")
 	// p(get_internal_exons(test_introns))
 
 	// p(get_cds([][2]int{{0, 1}}, [][2]int{{8, 9}, {4, 9}}, [][4]int{{2, 3, 6, 7}}))
-	test_starts := get_start_exons(test_seq, "+", test_introns)
-	p("test_introns")
-	p(test_introns)
-	p("test_internals")
-	p(test_internals)
-	p("test_stops")
-	p(test_stops) // // NOTE: this reports duplicates some times
-	p("test_starts")
-	p(test_starts) // // NOTE: this reports duplicates some times
+	// test_starts := get_start_exons(test_seq, "+", test_introns)
+	// p("test_introns")
+	// p(test_introns)
+	// p("test_internals")
+	// p(test_internals)
+	// p("test_stops")
+	// p(test_stops) // // NOTE: this reports duplicates some times
+	// p("test_starts")
+	// p(test_starts) // // NOTE: this reports duplicates some times
 
 	// will need to make sure it doesn't exist in the list before it gets reported
 	// perhaps worth considering if it should be put in a map??, the search  time shouldn't be rediculous though
 
-	p(get_orf(test_seq, "+"))
-	test_seq_1 := "ATGTAA"
-	p(get_orf(test_seq_1, "+"))
-	test_seqs := []string{
-		"ATGTAA",
-		"ATG...TAA",
-		"ATGnnnNNNTAA",
-		"ATGnnnGTxxxxxxxxxxxxxxxxxAGNNNTAA",
-		"ATGnnnGTxxxxxxxxxxxxxxxxxAGnnnGTxxxxxxxxxxxxxxxxxAGNNNTAA",
-		"NATG012GTNNNNNNNNNNAG...GTNNNNNNNNAG345TAA",
-		"NATGnnnGTxxxxxxxxxxxxxAGnnnGTxxxxxxxxxxxxAGNNNTAA",
-		"NATGnnnGTxxxxxAGnnnGTxxxxxxxxAGnnnGTxxxxxxxAGnnnGTxxxxxAGNNNTAA",
-		"NATGnnnGTabcdefghijklmnopqrstuvwxyzAGnnnGTabcdefghijklmnopqrstuvwxyzAGNNNTAA"}
+	// p(get_orf(test_seq, "+"))
+	// test_seq_1 := "ATGTAA"
+	// p(get_orf(test_seq_1, "+"))
+	// test_seqs := []string{
+	// 	"ATGTAA",                                                                                   // no
+	// 	"ATG...TAA",                                                                                // no
+	// 	"ATGnnnNNNTAA",                                                                             // no
+	// 	"ATGnnnGTxxxxxxxxxxxxxxxxxAGNNNTAA",                                                        // no, 1 intron
+	// 	"ATGnnnGTxxxxxxxxxxxxxxxxxAGnnnGTxxxxxxxxxxxxxxxxxAGNNNTAA",                                // yes 2 introns
+	// 	"NATG012GTNNNNNNNNNNAG...GTNNNNNNNNAG345TAA",                                               // yes
+	// 	"NATGnnnGTxxxxxxxxxxxxxAGnnnGTxxxxxxxxxxxxAGNNNTAA",                                        // yes
+	// 	"NATGnnnGTxxxxxxxxxGTxxxxxxxxxxxxxAGnnnGTxxxxxxxxxxxxAGxxxxAGnnnGTxxxxxxxxxxxxAGNNNTAA",    // no
+	// 	"NATGnnnGTxxxxxxxxxxxxxAGnnnGTxxxxxxxxxxxxAGNNNGTxxxxxxxxxxxxxAGnnnGTxxxxxxxxxxxxAGTAA",    // no
+	// 	"NATGnnnGTxxxxxxxxxxxxxAGnnnGTxxxxxxxxxxxxAGNNNGTxxxxxxxxxxxxxAGnnnGTxxxxxxxxxxxxAGNNNTAA", // no
+	// 	"NATGnnnGTabcdefghijklmnopqrstuvwxyzAGnnnGTabcdefghijklmnopqrstuvwxyzAGNNNTAA"}             // yes
 	// p(test_seqs)
-	for _, test := range test_seqs {
-		p(test)
-		p(get_orf(test, "+"))
+	test_seq := "NATGaaaGT0000000000000AGbbbGT111111111111AGcccGT2222222222222AGdddGT333333333333AGeeeTAA"
+	p("test_seq", test_seq)
+	// test_introns := getIntrons(test_seq, "+")
+	// p("test_introns", test_introns)
+	// test_starts := get_start_exons(test_seq, "+", test_introns)
+	// p("test_starts", test_starts)
+	// test_stops := get_stop_exons(test_introns, len(test_seq))
+	// p("test_stops", test_stops)
+	// p("test_cds", get_cds(test_starts, test_stops, test_introns))
+	test_orfs := get_orf(test_seq, "+")
+	test_orf_seqs := orfSeq(test_seq, test_orfs)
+	p("test_orfs", test_orfs)
+	p("test_orf_seqs", test_orf_seqs)
 
-	}
+	// p(test_seqs)
+	// for _, test := range test_seqs {
+	// 	p(test)
+	// 	test_orfs := get_orf(test, "+")
+	// 	// p(get_orf(test, "+"))
+	// 	test_orf_seqs := orfSeq(test, test_orfs)
+	// 	p(test_orfs)
+	// 	p(test_orf_seqs)
+	//
+	// }
 	// if true {
 	// 	p("################ get_cds ################")
 	// 	test_cds := get_cds(test_starts, test_stops, test_internals)
@@ -805,3 +1029,5 @@ func main() {
 	// p(tes)
 
 }
+
+// ATGaaaGT0000000000000AGbbbGT111111111111AGcccGT2222222222222AGdddGT333333333333AGeeeTAA
