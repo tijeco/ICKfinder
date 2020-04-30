@@ -9,14 +9,28 @@ import (
 	"io/ioutil"
 	"log"
 	"math"
+	"math/rand"
 	"os"
 	"os/exec"
 	"sort"
 	"strconv"
 	"strings"
+	"time"
+
+	"github.com/gonum/stat"
 )
 
 var p = fmt.Println
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
+
+func check(e error) {
+	if e != nil {
+		panic(e)
+	}
+}
 
 type fasta struct {
 	id   string
@@ -395,18 +409,27 @@ func get_start_exons(seq, strand string, introns [][2]int) map[[3]int]bool {
 	var out_exons map[[3]int]bool
 	out_exons = make(map[[3]int]bool)
 	var possible_starts map[int][]int
+	var possible_exon string
 	for intron := range introns {
-		possible_exon := seq[:introns[intron][0]]
+
 		if strand == "+" {
+			possible_exon = seq[:introns[intron][0]] // from beggining of seq to beginning of intron
 			possible_starts = codoncount(possible_exon, "ATG")
 			// p("possible_starts", possible_starts)
 		} else if strand == "-" {
+			possible_exon = seq[introns[intron][1]:] // from end of intron to end of seq
 			possible_starts = codoncount(possible_exon, "CAT")
+			// p("possible_starts", possible_starts)
 		}
 		if len(possible_starts) > 0 {
 			for rf := range possible_starts {
 				for start := range possible_starts[rf] {
-					out_exons[[3]int{possible_starts[rf][start], introns[intron][0], introns[intron][1]}] = true
+					if strand == "+" {
+						out_exons[[3]int{possible_starts[rf][start], introns[intron][0], introns[intron][1]}] = true
+					} else if strand == "-" {
+						out_exons[[3]int{introns[intron][0], introns[intron][1], 2 + (len(seq) - len(possible_exon)) + possible_starts[rf][start]}] = true
+					}
+
 					// out_exons[[3]int{possible_starts[rf][start], introns[intron][0], introns[intron][1]}] = true
 				}
 			}
@@ -416,41 +439,21 @@ func get_start_exons(seq, strand string, introns [][2]int) map[[3]int]bool {
 	return out_exons
 }
 
-func get_stop_exons(introns [][2]int, n int) map[[3]int]bool {
+func get_stop_exons(introns [][2]int, n int, strand string) map[[3]int]bool {
 	var out_exons map[[3]int]bool
 	out_exons = make(map[[3]int]bool)
 
 	for intron := range introns {
 		// out_exons = append(out_exons, [2]int{introns[intron][1] + 1, n - 1})
-		out_exons[[3]int{introns[intron][0], introns[intron][1], n - 1}] = true
+		if strand == "+" {
+			out_exons[[3]int{introns[intron][0], introns[intron][1], n - 1}] = true
+		} else if strand == "-" {
+			out_exons[[3]int{0, introns[intron][0], introns[intron][1]}] = true
+		}
+
 	}
 	return out_exons
 }
-
-// func get_internal_exons(introns [][2]int) map[[4]int]bool {
-// 	var out_exons map[[4]int]bool
-// 	out_exons = make(map[[4]int]bool)
-// 	// p(1, introns)
-// 	for intron := range introns {
-// 		// p(2, intron)
-// 		exon_start := introns[intron][1]
-// 		// p(3, exon_start)
-// 		for next_intron := range introns[intron+1:] {
-// 			// p(introns[intron], introns[intron+1:][next_intron])
-// 			// p(4, next_intron)
-// 			exon_stop := introns[intron+1:][next_intron][0]
-// 			// p(5, exon_stop)
-// 			// p(6, exon_stop > exon_start)
-// 			if exon_stop > exon_start {
-// 				intron_1 := introns[intron]
-// 				intron_2 := introns[intron+1:][next_intron]
-// 				out_exons[[4]int{intron_1[0], intron_1[1], intron_2[0], intron_2[1]}] = true
-//
-// 			}
-// 		}
-// 	}
-// 	return out_exons
-// }
 
 func valid_orf(orf []int) bool {
 	var is_valid bool
@@ -489,201 +492,136 @@ func valid_orf(orf []int) bool {
 	return is_valid
 }
 
-func get_cds(starts, stops map[[3]int]bool, introns [][2]int, seq string) [][]int {
+func get_cds(starts, stops map[[3]int]bool, introns [][2]int, seq, strand string) [][]int {
 	var out_cds [][]int
-	var start_cds, orf []int
+	var start_cds, stop_cds, orf []int
 	for start := range starts {
 		for stop := range stops {
-			if Equal(start[:][1:], stop[:][:len(stop)-1]) { // one intron
-				// p(1, start, stop)
-				orf = append(start[:], stop[:][len(stop)-1])
-				// p(orf, orfSeq(seq, [][]int{orf}), valid_orf(orf))
-				if valid_orf(orf) {
-					out_cds = append(out_cds, orf)
+			if strand == "+" {
+				if Equal(start[:][1:], stop[:][:len(stop)-1]) { // one intron
+					// p(1, start, stop)
+					orf = append(start[:], stop[:][len(stop)-1])
+					// p(orf, orfSeq(seq, [][]int{orf}), valid_orf(orf))
+					if valid_orf(orf) {
+						out_cds = append(out_cds, orf)
 
-				}
-			} else if start[0] > stop[len(stop)-1] || start[1] > stop[0] || start[len(start)-1] > stop[0] {
-				// p(2, start, stop)
-				continue
-			} else {
-				// p(3, start, stop)
-				if valid_orf(append(start[:], stop[:]...)) {
-					out_cds = append(out_cds, append(start[:], stop[:]...))
-				}
-				for i, intron := range introns {
+					}
+				} else if start[0] > stop[len(stop)-1] || start[1] > stop[0] || start[len(start)-1] > stop[0] {
+					// p(2, start, stop)
+					continue
+				} else {
+					// p(3, start, stop)
+					if valid_orf(append(start[:], stop[:]...)) {
+						out_cds = append(out_cds, append(start[:], stop[:]...))
+					}
+					for i, intron := range introns {
 
-					if Equal(intron[:], start[:][1:]) || Equal(intron[:], stop[:][:len(stop)-1]) {
-						// p(1, start, intron, stop)
-						continue
-					} else if intron[0] < start[len(start)-1] || intron[1] > stop[0] {
-						// p(2, start, intron, stop)
-						continue
-					} else {
-						// p(3, start, intron, stop)
-						start_cds = append(start[:], intron[:]...)
-						orf = append(start_cds, stop[:]...)
-						// p(orf, orfSeq(seq, [][]int{orf}), valid_orf(orf))
-						if valid_orf(orf) {
-							out_cds = append(out_cds, orf)
-						}
-						for _, next_intron := range introns[i:] {
-							// p(intron, next_intron)
-							if Equal(next_intron[:], start_cds[:][len(start_cds)-2:]) || Equal(next_intron[:], stop[:][:len(stop)-1]) {
-								continue
-							} else if next_intron[0] < start_cds[len(start_cds)-1] || next_intron[1] > stop[0] {
-								continue
-							} else {
-								start_cds = append(start_cds, next_intron[:]...)
-								orf = append(start_cds, stop[:]...)
-								// p(orf, orfSeq(seq, [][]int{orf}), valid_orf(orf))
-								if valid_orf(orf) {
-									out_cds = append(out_cds, orf)
-								}
+						if Equal(intron[:], start[:][1:]) || Equal(intron[:], stop[:][:len(stop)-1]) {
+							// p(1, start, intron, stop)
+							continue
+						} else if intron[0] < start[len(start)-1] || intron[1] > stop[0] {
+							// p(2, start, intron, stop)
+							continue
+						} else {
+							// p(3, start, intron, stop)
+							start_cds = append(start[:], intron[:]...)
+							orf = append(start_cds, stop[:]...)
+							// p(orf, orfSeq(seq, [][]int{orf}), valid_orf(orf))
+							if valid_orf(orf) {
+								out_cds = append(out_cds, orf)
 							}
+							for _, next_intron := range introns[i:] {
+								// p(intron, next_intron)
+								if Equal(next_intron[:], start_cds[:][len(start_cds)-2:]) || Equal(next_intron[:], stop[:][:len(stop)-1]) {
+									continue
+								} else if next_intron[0] < start_cds[len(start_cds)-1] || next_intron[1] > stop[0] {
+									continue
+								} else {
+									start_cds = append(start_cds, next_intron[:]...)
+									orf = append(start_cds, stop[:]...)
+									// p(orf, orfSeq(seq, [][]int{orf}), valid_orf(orf))
+									if valid_orf(orf) {
+										out_cds = append(out_cds, orf)
+									}
+								}
 
+							}
 						}
 					}
-				}
+				} // stop start else
+
+			} else if strand == "-" {
+				if Equal(stop[:][1:], start[:][:len(start)-1]) { // one intron
+					// p(1, stop, start)
+					orf = append(stop[:], start[:][len(start)-1])
+					// p(orf, orfSeq(seq, [][]int{orf}), valid_orf(orf))
+					if valid_orf(orf) {
+						out_cds = append(out_cds, orf)
+
+					}
+				} else if stop[0] > start[len(start)-1] || stop[1] > start[0] || stop[len(stop)-1] > start[0] {
+					// p(2, stop, start)
+					continue
+				} else {
+					// p(3, stop, start)
+					if valid_orf(append(stop[:], start[:]...)) {
+						out_cds = append(out_cds, append(stop[:], start[:]...))
+					}
+					for i, intron := range introns {
+
+						if Equal(intron[:], stop[:][1:]) || Equal(intron[:], start[:][:len(start)-1]) {
+							// p(1, stop, intron, start)
+							continue
+						} else if intron[0] < stop[len(stop)-1] || intron[1] > start[0] {
+							// p(2, stop, intron, start)
+							continue
+						} else {
+							// p(3, stop, intron, start)
+							stop_cds = append(stop[:], intron[:]...)
+							orf = append(stop_cds, start[:]...)
+							// p(orf, orfSeq(seq, [][]int{orf}), valid_orf(orf))
+							if valid_orf(orf) {
+								out_cds = append(out_cds, orf)
+							}
+							for _, next_intron := range introns[i:] {
+								// p(intron, next_intron)
+								if Equal(next_intron[:], stop_cds[:][len(stop_cds)-2:]) || Equal(next_intron[:], start[:][:len(start)-1]) {
+									continue
+								} else if next_intron[0] < stop_cds[len(stop_cds)-1] || next_intron[1] > start[0] {
+									continue
+								} else {
+									stop_cds = append(stop_cds, next_intron[:]...)
+									orf = append(stop_cds, start[:]...)
+									// p(orf, orfSeq(seq, [][]int{orf}), valid_orf(orf))
+									if valid_orf(orf) {
+										out_cds = append(out_cds, orf)
+									}
+								}
+
+							}
+						}
+					}
+				} // stop start else
+
 			}
 
-		}
-	}
-	// 		if start[0] > stop[len(stop)-1] {
-	// 			continue
-	// 		} else if start[len(start)-1] > stop[0] {
-	// 			continue
-	// 		} else if Equal(start[1:][:], stop[:len(stop)-1][:]) { // one intron
-	// 			start_cds = append(start[:], stop[len(stop)-1])
-	// 			if valid_orf(start_cds) {
-	// 				out_cds = append(out_cds, start_cds)
-	// 				p(1, start, stop, start_cds, start_cds[:len(start_cds)-3])
-	//
-	// 			}
-	// 			start_cds = start_cds[:len(start_cds)-3]
-	// 			// if sum of length of the two exons are divisible by 3, return
-	// 		} else {
-	// 			if ((start[1]-start[0])+(stop[0]-start[len(start)-1]+1)+((stop[len(stop)-1]+1)-(stop[1]+1)))%3 == 0 { // two introns
-	//
-	// 			} else {
-	// 				for intron := range introns {
-	// 					if Equal(introns[intron][:], start[1:][:]) || Equal(introns[intron][:], stop[:len(stop)-1][:]) { // intron is already included in start or stop
-	// 						if Equal(introns[intron][:], start[1:][:]) { // intron included in start
-	// 							start_cds = append(start[:], stop[1:][:]...)
-	// 						} else { // intron included in stop
-	// 							start_cds = append(start[:len(start)-1][:], stop[:]...)
-	// 						}
-	// 					} else if introns[intron][0] > start[len(start)-1] {
-	// 						start_cds = append(start[:], introns[intron][:]...)
-	// 						start_cds = append(start_cds, stop[:]...)
-	// 						if valid_orf(start_cds) {
-	// 							out_cds = append(out_cds, start_cds)
-	// 							p(2, start, stop, start_cds, start_cds[:len(start_cds)-3])
-	//
-	// 						}
-	// 						start_cds = start_cds[:len(start_cds)-3]
-	// 						for i := range introns[intron:] {
-	// 							start_cds = append(start_cds, introns[intron:][i][:]...)
-	// 							start_cds = append(start_cds, stop[:]...)
-	// 							if valid_orf(start_cds) {
-	// 								out_cds = append(out_cds, start_cds)
-	// 								p(3, start, stop, start_cds, start_cds[:len(start_cds)-3])
-	//
-	// 							}
-	// 							start_cds = start_cds[:len(start_cds)-3]
-	//
-	// 							// check if putative exon_length is divisible by 3
-	// 							// afterwards, start_cds = append(start_cds,i[:]...)
-	// 						}
-	// 					}
-	// 				}
-	// 			}
-	//
-	// 		}
-	//
-	// 	}
-	// }
+		} // end stop
+	} //end start
+
 	return out_cds
 }
-
-// func get_cds(starts, stops map[[2]int]bool, inners map[[4]int]bool) [][]int {
-// 	var out_cds [][]int
-// 	// p("starts", starts)
-// 	for start := range starts {
-// 		// p("start", start)
-// 		start_cds := []int{start[0], start[1]}
-// 		// p(0, "start_cds", start_cds)
-// 		// start_cds = append(start_cds, start...)
-// 		// p("stops", stops)
-// 		for stop := range stops {
-// 			// p("stop", stop)
-// 			if start[1] == stop[0]-1 {
-// 				if (stop[0]-start[0])%3 == 0 {
-// 					out_cds = append(out_cds, []int{start[0], start[1], stop[0], stop[1]})
-// 					// p(1, "out_cds", out_cds)
-// 					// out_cds = append(out_cds, []int{stop[0],stop[1]})
-// 					// return out_cds
-// 					// break
-//
-// 					// return out_cds
-// 				}
-// 			} else if start[1] > stop[0] {
-// 				// p(1, "evaluate", start[1], ">", stop[0])
-// 				continue
-// 			} else {
-// 				// p("inners", inners)
-// 				for inner := range inners {
-// 					// p("inner", inner)
-// 					// p(2, "evaluate", inner[0], start_cds[len(start_cds)-1]+1)
-// 					if inner[0] == start_cds[len(start_cds)-1]+1 { // does inner plug into start
-// 						// p(3, "evaluate", inner[len(start_cds)-1], stop[0]-1)
-// 						if inner[len(inner)-1] == stop[0]-1 { // does inner plug into stop
-//
-// 							start_cds = append(start_cds, inner[:]...)
-// 							len_exon := (start_cds[1] + 1) - start_cds[0]
-// 							// p(1, "start_cds", start_cds, start_cds[2:], len_exon)
-//
-// 							for i := range start_cds[2:] {
-// 								// p("i", i)
-// 								// p(4, "evaluate", i+4, len(start_cds))
-// 								if i+4 <= len(start_cds[2:]) {
-// 									len_exon += (start_cds[2:][i+2]) - (start_cds[2:][i+1] + 1)
-// 									// p("len_exon", start_cds[2:][i+2], start_cds[2:][i+1], (start_cds[2:][i+2]+1)-start_cds[2:][i+1], len_exon)
-// 									i += 4
-// 								}
-// 							}
-// 							// p(5, "evaluate", len_exon, stop[1], stop[0], (len_exon + (stop[1] - stop[0])))
-// 							if (len_exon+((stop[1]+1)-stop[0]))%3 == 0 {
-// 								start_cds = append(start_cds, stop[:]...)
-// 								out_cds = append(out_cds, start_cds[:])
-// 								// out_cds = append(out_cds, stop[:])
-// 								// return out_cds
-// 							}
-// 						}
-// 					} else { // might need elif here --> if start_cds[-2] == inner[0] or something like that
-//
-// 						start_cds = append(start_cds, inner[:]...)
-// 						// p(2, "start_cds", start_cds)
-// 					}
-//
-// 				} // end for inner
-// 			}
-//
-// 		} // end for stop
-// 	} // end for start
-// 	return out_cds
-// } // end get_cds
 
 func get_orf(seq, strand string) [][]int {
 	introns := getIntrons(seq, strand)
 	p("introns", introns)
 	start_exons := get_start_exons(seq, strand, introns)
 	p("start_exons", start_exons)
-	stop_exons := get_stop_exons(introns, len(seq))
+	stop_exons := get_stop_exons(introns, len(seq), "+")
 	p("stop_exons", stop_exons)
 	// internal_exons := get_internal_exons(introns)
 	// p("internal_exons", internal_exons)
 
-	cds := get_cds(start_exons, stop_exons, introns, seq)
+	cds := get_cds(start_exons, stop_exons, introns, seq, strand)
 	return cds
 }
 func orfSeq(seq string, orfs [][]int) []string {
@@ -736,6 +674,218 @@ func orfSeq(seq string, orfs [][]int) []string {
 	return seqList
 }
 
+func fastaAlignment(fasta *bytes.Reader) map[string][]rune {
+	aln := make(map[string][]rune)
+	var aln_size int
+	record_1 := true
+	for record := range parse(fasta) {
+		// p(record.id, len(record.seq))
+		if record_1 {
+			p(1, record.id)
+			aln_size = len(record.seq)
+			aln[record.id] = make([]rune, aln_size)
+			for i, character := range record.seq {
+				aln[record.id][i] = character
+			}
+			record_1 = false
+		} else if len(record.seq) != aln_size {
+			p("ERROR")
+		} else {
+			p(record.id)
+			aln[record.id] = make([]rune, aln_size)
+			for i, character := range record.seq {
+				aln[record.id][i] = character
+			}
+		}
+
+		// break
+		// p(record.seq)
+	}
+	return aln
+}
+
+func uncorrectedDistance(alnRow1, alnRow2 []rune, gapCost float64) float64 { // I can change this to dist float64
+	var dist float64 // not needed if I make change in comment from above line
+	var matches, positionsScored, gaps float64
+
+	if len(alnRow1) != len(alnRow2) {
+		p("ERROR!!")
+	} else {
+		for i := 0; i < len(alnRow1); i++ {
+			character1 := string(alnRow1[i])
+			character2 := string(alnRow2[i])
+			if character1+character2 != "--" {
+				if character1 == "-" || character2 == "-" {
+					gaps += 1
+				} else if character1 == character2 {
+					matches += 1
+				}
+				positionsScored += 1
+			}
+		}
+	}
+	// dist = 1 - (matches / (positionsScored + (gaps * gapCost)))
+	dist = 1 - (matches / (positionsScored + (gaps * gapCost)))
+	return dist
+}
+
+func gapDistance(alnRow1, alnRow2 []rune, gapCost float64) float64 { // I can change this to dist float64
+	// var dist float64 // not needed if I make change in comment from above line
+	var matches, positionsScored, gaps float64
+
+	if len(alnRow1) != len(alnRow2) {
+		p("ERROR!!")
+	} else {
+		for i := 0; i < len(alnRow1); i++ {
+			character1 := string(alnRow1[i])
+			character2 := string(alnRow2[i])
+			if character1+character2 != "--" {
+				if character1 == "-" || character2 == "-" {
+					gaps += 1
+				} else if character1 == character2 {
+					matches += 1
+				}
+				positionsScored += 1
+			}
+		}
+	}
+	// dist = 1 - (matches / (positionsScored + (gaps * gapCost)))
+	// dist = 1 - (matches / (positionsScored + (gaps * gapCost)))
+	return gaps
+}
+
+func distVector(aln map[string][]rune, gapCost float64, method string) map[string]float64 {
+	distMat := make(map[[2]string]bool)
+	distVec := make(map[string]float64)
+	var hdist float64
+	for h1 := range aln {
+		for h2 := range aln {
+			if h1 != h2 {
+				h1_h2 := []string{h1, h2}
+				sort.Strings(h1_h2)
+				h12 := [2]string{h1_h2[0], h1_h2[1]}
+				if _, ok := distMat[h12]; ok {
+					// fmt.Println("value: ", value)
+					continue
+				} else {
+					if method == "uncorrectedDistance" {
+						hdist = uncorrectedDistance(aln[h1], aln[h2], gapCost)
+					} else if method == "gapDistance" {
+						hdist = gapDistance(aln[h1], aln[h2], gapCost)
+					}
+
+					if _, ok := distVec[h1]; ok {
+						distVec[h1] += hdist
+					} else {
+						distVec[h1] = hdist
+					}
+
+					if _, ok := distVec[h2]; ok {
+						distVec[h2] += hdist
+					} else {
+						distVec[h2] = hdist
+					}
+					distMat[h12] = true //uncorrectedDistance(aln[h1], aln[h2], 1)
+					// fmt.Println("key not found")
+				}
+			}
+
+		}
+	}
+	return distVec
+}
+
+func get_some_key(m map[string][]rune) string {
+	// var k string
+	for k := range m {
+		return k
+	}
+	return ""
+	// var k string, v []rune; var ok bool; for k, v = range m { ok = true; break }
+	// return k
+}
+func distBoot(aln map[string][]rune, gapCost float64, N int) map[string]float64 {
+	// var m_s [2]float64
+	// var mean, std float64
+	distVec := make(map[string]float64)
+	// h_mean_std := make(map[string][2]float64)
+	var distList []float64
+	// mean, std := stat.MeanStdDev(trimmed, nil)
+	for i := 0; i < N; i++ {
+
+		for {
+			h1 := get_some_key(aln)
+			h2 := get_some_key(aln)
+			if h1 != h2 {
+				h1_h2 := uncorrectedDistance(aln[h1], aln[h2], gapCost)
+				distList = append(distList, h1_h2)
+				if _, ok := distVec[h1]; ok {
+					distVec[h1] += h1_h2
+				} else {
+					distVec[h1] = h1_h2
+				}
+
+				if _, ok := distVec[h2]; ok {
+					distVec[h2] += h1_h2
+				} else {
+					distVec[h2] = h1_h2
+				}
+				// p(i, h1, h2, h1_h2)
+				break
+			}
+		}
+
+	}
+
+	mean, std := stat.MeanStdDev(distList, nil)
+	p("mean:", mean, "std:", std)
+	p(float64(N) * mean)
+	return distVec
+}
+
+func boot(vec map[string]float64, N int) (bootList []float64) {
+	rand.Seed(time.Now().Unix())
+	var headers []string
+	for h := range vec {
+		headers = append(headers, h)
+	}
+	for i := 0; i < N; i++ {
+		mean := 0.0
+		for j := 0; j < len(vec); j++ {
+			mean += vec[headers[rand.Intn(len(headers))]]
+			// change with random selection
+			// for h := range vec {
+			//
+			// 	mean += vec[h]
+			// 	break
+			// }
+
+		}
+		bootList = append(bootList, mean/float64(len(vec)))
+
+	}
+	return bootList
+}
+
+func get_outliers(vec map[string]float64, p float64) (outliers []string) {
+	for h, d := range vec {
+		if d > p {
+			outliers = append(outliers, h)
+		}
+	}
+	return outliers
+}
+
+// func jcDistance(alnRow1, alnRow2 []rune, gapCost float64) float64 {
+// 	var dist, jcdist float64
+// 	dist = uncorrectedDistance(alnRow1, alnRow2, gapCost)
+// 	// b := float64(3) / float64(4)
+// 	p("dist", dist)
+// 	jcdist = -0.75 * math.Log(1-(1.33/dist))
+// 	return jcdist
+//
+// }
+
 // func possibleExons(introns [][2]int , s string) {
 //
 // }
@@ -747,9 +897,16 @@ func orfSeq(seq string, orfs [][]int) []string {
 // because it seems unlikely that zero GTs fall within an intronic sequence
 
 func main() {
+	mafft_path, err := exec.LookPath("mafft")
+	if err != nil {
+		log.Fatal("mafft not found in $PATH, exiting now")
+	}
+	fmt.Printf("mafft is available at %s\n", mafft_path)
 	var right_seq, left_seq string
 
 	p(right_seq, left_seq)
+	// var ick_exons map[string]string
+	// ick_exons = make(map[string]string)
 	// toxin := []int{6, 6, 0, 4, 6}
 	// toxin := []int{6, 6, 1, 0, 5, 1, 6, 1, 11, 5, 10, 3, 3}
 	// p(toxin)
@@ -777,6 +934,8 @@ func main() {
 	defer fastaFh.Close()
 
 	for record := range parse(fastaFh) {
+		ick_exons := make(map[string]string)
+		// p(record.id)
 		record_TGT := codoncount(record.seq, "TGT")
 		record_TGC := codoncount(record.seq, "TGC")
 		record_ACA := codoncount(record.seq, "ACA")
@@ -852,6 +1011,7 @@ func main() {
 
 						} // end check stop
 						internal_stops := strings.Count(translate(record.seq[left:right+3]), "*")
+						ick_exons[record.id+"_+"+strconv.Itoa(reading_frame)+"."+strconv.Itoa(left)+"."+strconv.Itoa(right)] = record.seq[left : right+3]
 						p(record.id, "+", reading_frame, left, right, stop_found, internal_stops, pattern, general2specific(list_of_cys[match_pair[0]:match_pair[1]]), record.seq[left:right+3], translate(record.seq[left:right+3]))
 						// p(match_pair, general2specific(list_of_cys[match_pair[0]:match_pair[1]]))
 						// p("Start:", start_found, "Stop:", stop_found)
@@ -903,6 +1063,7 @@ func main() {
 							}
 
 						}
+						ick_exons[record.id+"_-"+strconv.Itoa(reading_frame)+"."+strconv.Itoa(left)+"."+strconv.Itoa(right)] = reverseCompliment(record.seq[left : right+3])
 						p(record.id, "-", reading_frame, left, right, stop_found, strings.Count(translate(reverseCompliment(record.seq[left:right+3])), "*"), pattern, general2specific(reverse(list_of_cys[match_pair[0]:match_pair[1]])), record.seq[left:right+3], translate(reverseCompliment(record.seq[left:right+3])))
 						// p(record.id, "-", reading_frame, left, right, start_found && stop_found, strings.Count(translate(reverseCompliment(record.seq[left:right+3])), "*"), pattern, general2specific(reverse(list_of_cys[match_pair[0]:match_pair[1]])), record.seq[left:right+3], translate(reverseCompliment(record.seq[left:right+3])))
 
@@ -913,6 +1074,82 @@ func main() {
 			} // end toxin pattern for loop
 
 		} // end reading_frame for loop
+		p(ick_exons)
+		if _, err := os.Stat("intermediate_files"); os.IsNotExist(err) {
+			os.Mkdir("intermediate_files", 0700) // may need to use Mode.OS instead of 0700
+		}
+		f, err := os.Create("intermediate_files/" + record.id + "_ick_exons.fa")
+		check(err)
+		defer f.Close()
+		w := bufio.NewWriter(f)
+		for header, sequence := range ick_exons {
+			if _, err := w.WriteString(">" + header + "\n"); err != nil {
+				log.Fatalln("error writing header to fasta:", err)
+			}
+			// check(err)
+			if _, err := w.WriteString(sequence + "\n"); err != nil {
+				log.Fatalln("error writing sequence to fasta:", err)
+			}
+		}
+		w.Flush()
+
+		cmd := exec.Command("sh", "-c", "mafft intermediate_files/"+record.id+"_ick_exons.fa")
+		stdout, err := cmd.Output()
+		if err != nil {
+			log.Fatal(err)
+		}
+		// fmt.Printf("%s\n", stdout)
+		p("##### begin alignment")
+		fmt.Printf("%T", bytes.NewReader(stdout))
+		for record := range parse(bytes.NewReader(stdout)) {
+			p(record.id, len(record.seq))
+			break
+			// p(record.seq)
+		}
+		alignment := fastaAlignment(bytes.NewReader(stdout))
+
+		p(len(alignment), alignment)
+		// p(distVector(alignment))
+		distVecAln := distVector(alignment, 1, "uncorrectedDistance")
+		for h, d := range distVecAln {
+			p(h, d)
+		}
+		p("BOOT")
+		distVecAlnBoot := boot(distVecAln, 1000)
+		p(stat.Mean(distVecAlnBoot, nil), distVecAlnBoot)
+		sort.Float64s(distVecAlnBoot)
+		p(stat.Quantile(0.025, stat.Empirical, distVecAlnBoot, nil))
+		p(stat.Quantile(0.975, stat.Empirical, distVecAlnBoot, nil))
+		threshold := stat.Quantile(0.975, stat.Empirical, distVecAlnBoot, nil)
+		distVecOutliers := get_outliers(distVecAln, threshold)
+		p(distVecOutliers)
+
+		// number of gaps seems fine, perhaps can try number of mismatches?
+
+		// for h, d := range distVecAlnBoot {
+		// 	p(h, d)
+		// }
+		// p(alnMean, alnStd)
+
+		// p(uncorrectedDistance(alignment["KK114158_-1.153559.153646"], alignment["KK114158_+2.169961.170033"], 1))
+		// p(jcDistance(alignment["KK114158_-1.153559.153646"], alignment["KK114158_+2.169961.170033"], 1))
+		p("##### end alignment")
+
+		for _, outlier := range distVecOutliers {
+			delete(ick_exons, outlier)
+		} // remove outliers from map
+
+		/*
+			This is where I will start looking for ORFs!
+			The biggest thing is setting 3 values
+			1. gene length
+					ORFs will be searched within this space
+			2. intron minimum and maximum
+				no longer than 16k, I think
+				not sure how short, maybe 100-1000
+			3. exon minimum
+				maybe 90?? I can check the literature
+		*/
 
 		// this is the end of the contig should now be able to evaluate data structure
 		// if the data structure has enough ICKs past a certain threshold
@@ -973,6 +1210,7 @@ func main() {
 	// 	"NATGnnnGTabcdefghijklmnopqrstuvwxyzAGnnnGTabcdefghijklmnopqrstuvwxyzAGNNNTAA"}             // yes
 	// p(test_seqs)
 	test_seq := "NATGaaaGT0000000000000AGbbbGT111111111111AGcccGT2222222222222AGdddGT333333333333AGeeeTAA"
+	test_seq_rc := "TTAeeeCT333333333333ACdddCT2222222222222ACcccCT111111111111ACbbbCT0000000000000ACaaaCATN"
 	p("test_seq", test_seq)
 	// test_introns := getIntrons(test_seq, "+")
 	// p("test_introns", test_introns)
@@ -985,7 +1223,18 @@ func main() {
 	test_orf_seqs := orfSeq(test_seq, test_orfs)
 	p("test_orfs", test_orfs)
 	p("test_orf_seqs", test_orf_seqs)
-
+	// p("get_stop_exons",get_stop_exons(introns, n, strand))
+	p("test_seq_rc", test_seq_rc)
+	test_seq_rc_introns := getIntrons(test_seq_rc, "-")
+	p("test_seq_rc_introns", test_seq_rc_introns)
+	test_seq_rc_starts := get_start_exons(test_seq_rc, "-", test_seq_rc_introns)
+	p("test_seq_rc_starts", test_seq_rc_starts)
+	test_seq_rc_stops := get_stop_exons(test_seq_rc_introns, len(test_seq_rc), "-")
+	p("test_seq_rc_stops", test_seq_rc_stops)
+	test_seq_rc_cds := get_cds(test_seq_rc_starts, test_seq_rc_stops, test_seq_rc_introns, test_seq_rc, "-")
+	p("test_seq_rc_cds", test_seq_rc_cds)
+	test_seq_rc_orf_seqs := orfSeq(test_seq_rc, test_seq_rc_cds)
+	p("test_seq_rc_orf_seqs", test_seq_rc_orf_seqs)
 	// p(test_seqs)
 	// for _, test := range test_seqs {
 	// 	p(test)
@@ -1009,25 +1258,34 @@ func main() {
 
 	// getIntrons("AGnn1nGTnnn2nnGTnn3nnnAGnn4nnAG", "+") <-- breaks
 	//
+	// cmd := exec.Command("tr", "a-z", "A-Z")
+	// cmd.Stdin = strings.NewReader("some input")
+	// var out bytes.Buffer
+	// cmd.Stdout = &out
+	// error := cmd.Run()
+	// if error != nil {
+	// 	log.Fatal(error)
+	// }
+	//
+	// fmt.Printf("in all caps: %q\n", out.String())
+	// p(ick_exons)
 
-	path, err := exec.LookPath("mafft")
-	if err != nil {
-		log.Fatal("installing mafft is in your future")
-	}
-	fmt.Printf("mafft is available at %s\n", path)
-	cmd := exec.Command("sh", "-c", "mafft test.fa")
-	stdoutStderr, err := cmd.CombinedOutput()
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Printf("%s\n", stdoutStderr)
-	for record := range parse(bytes.NewReader(stdoutStderr)) {
-		p(record.id)
-	}
-
-	// test_seq := "A"
-	// p(tes)
+	// path, err := exec.LookPath("mafft")
+	// if err != nil {
+	// 	log.Fatal("installing mafft is in your future")
+	// }
+	// fmt.Printf("mafft is available at %s\n", path)
+	// cmd := exec.Command("sh", "-c", "mafft test.fa")
+	// stdout, err := cmd.CombinedOutput()
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	// fmt.Printf("%s\n", stdout)
+	// for record := range parse(bytes.NewReader(stdout)) {
+	// 	p(record.id)
+	// }
 
 }
 
 // ATGaaaGT0000000000000AGbbbGT111111111111AGcccGT2222222222222AGdddGT333333333333AGeeeTAA
+// TTAeeeCT333333333333ACdddCT2222222222222ACcccCT111111111111ACbbbCT0000000000000ACaaaCATN
