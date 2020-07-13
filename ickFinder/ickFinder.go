@@ -324,10 +324,10 @@ func writeSeqMap(seqIn map[string]string, outDir, outName string) string {
 	return outFile
 }
 
-func signalP(pepSeq map[string]string, outDir string) (signalpOutStr string) {
+func signalP(pepSeq map[string]string, signalPath, outDir string) (signalpOutStr string) {
 	if willRun("signalp") {
 		pepSeqFile := writeSeqMap(pepSeq, outDir, "preSignalP")
-		signalPstr := "signalp -gff -prefix signalPout -fasta " + pepSeqFile
+		signalPstr := signalPath + " -gff -prefix signalPout -fasta " + pepSeqFile
 		signalPCmd := exec.Command("sh", "-c", signalPstr)
 		p("running", signalPstr)
 		signalPOut, signalPErr := signalPCmd.Output()
@@ -342,6 +342,8 @@ func signalP(pepSeq map[string]string, outDir string) (signalpOutStr string) {
 }
 
 func main() {
+	// currentTime := time.Now()
+	p(time.Now().Format("15:04:05 Mon Jan-02-2006"))
 	// os.Exit(1)
 
 	// var inPep, verifiedICK string
@@ -365,7 +367,7 @@ func main() {
 	blastHmmerSeqs := header2seq(bothResults, queryPep) // maybe merge combineBlastpHmmer to go here and return map[string][string]
 
 	if signalPath != "" {
-		signalpResults := signalP(blastHmmerSeqs, outDir)
+		signalpResults := signalP(blastHmmerSeqs, signalPath, outDir)
 		p(signalpResults)
 	} else {
 		p("Skipping signalP")
@@ -382,12 +384,6 @@ func main() {
 	// flag.PrintDefaults()
 
 	// fmt.Println("Hello, playground")
-	p(log.LUTC)
-	p(log.Ldate)
-	p(log.Llongfile)
-	p(log.Lmicroseconds)
-	p(log.Lshortfile)
-	p(log.Ltime)
-	currentTime := time.Now()
-	p(currentTime.Format("Mon Jul 13 11:40:31 EDT 2020"))
+
+	p(time.Now().Format("15:04:05 Mon Jan-02-2006"))
 }
