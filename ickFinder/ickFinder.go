@@ -387,7 +387,7 @@ func main() {
 		if withCleavageErr != nil {
 			log.Fatal(withCleavageErr)
 		}
-		p(withCleavage[0])
+		p(withCleavage[0][0])
 
 	} else {
 		p("Skipping signalP")
