@@ -383,7 +383,11 @@ func main() {
 		signalPfile := csv.NewReader(signalPfileName)
 		signalPfile.Comma = '\t'
 		signalPfile.Comment = '#'
-		p(signalPfile)
+		withCleavage, withCleavageErr := signalPfile.ReadAll()
+		if withCleavageErr != nil {
+			log.Fatal(withCleavageErr)
+		}
+		p(withCleavage)
 
 	} else {
 		p("Skipping signalP")
