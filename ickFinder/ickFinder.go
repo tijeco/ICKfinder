@@ -327,7 +327,7 @@ func writeSeqMap(seqIn map[string]string, outDir, outName string) string {
 func signalP(pepSeq map[string]string, signalPath, outDir string) (signalpOutStr string) {
 	if willRun("signalp") {
 		pepSeqFile := writeSeqMap(pepSeq, outDir, "preSignalP")
-		signalPstr := signalPath + " -gff -prefix signalPout -fasta " + pepSeqFile
+		signalPstr := signalPath + " -gff3 -prefix signalPout -fasta " + pepSeqFile
 		signalPCmd := exec.Command("sh", "-c", signalPstr)
 		p("running", signalPstr)
 		signalPOut, signalPErr := signalPCmd.Output()
