@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"encoding/csv"
 	"flag"
 	"fmt"
 	"io"
@@ -369,6 +370,15 @@ func main() {
 	if signalPath != "" {
 		signalpResults := signalP(blastHmmerSeqs, signalPath, outDir)
 		p(signalpResults)
+		signalPfileName, signalPfileError := os.Open("signalPout.gff3")
+		if signalPfileError != nil {
+			log.Fatal(signalPfileError)
+		}
+		signalPfile := csv.NewReader(signalPfileName)
+		signalPfile.Comma = '\t'
+		signalPfile.Comment = '#'
+		p(signalPfile)
+
 	} else {
 		p("Skipping signalP")
 		writeSeqMap(blastHmmerSeqs, outDir, "noSignalP")
