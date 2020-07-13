@@ -368,8 +368,14 @@ func main() {
 	blastHmmerSeqs := header2seq(bothResults, queryPep) // maybe merge combineBlastpHmmer to go here and return map[string][string]
 
 	if signalPath != "" {
-		signalpResults := signalP(blastHmmerSeqs, signalPath, outDir)
-		p(signalpResults)
+		var signalpResults string
+		signalPgff := "signalPout.gff3"
+		if fileExists(signalPgff) == false {
+			p(signalPgff, "doesn't exist")
+			signalpResults = signalP(blastHmmerSeqs, signalPath, outDir)
+			p(signalpResults)
+		}
+
 		signalPfileName, signalPfileError := os.Open("signalPout.gff3")
 		if signalPfileError != nil {
 			log.Fatal(signalPfileError)
