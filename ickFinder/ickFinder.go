@@ -341,6 +341,35 @@ func signalP(pepSeq map[string]string, signalPath, outDir string) (signalpOutStr
 
 	return
 }
+func subsetSeqMap(subset []string, original map[string]string) map[string]string {
+	subMap := make(map[string]string)
+	for _, header := range subset {
+		if _, ok := original[header]; ok {
+			subMap[header] = original[header]
+			//do something here
+		}
+	}
+	return subMap
+}
+func signalpGffList(gffFile string) (headerList []string) {
+	signalPfileName, signalPfileError := os.Open(gffFile)
+	if signalPfileError != nil {
+		log.Fatal(signalPfileError)
+	}
+	signalPfile := csv.NewReader(signalPfileName)
+	signalPfile.Comma = '\t'
+	signalPfile.Comment = '#'
+	withCleavage, withCleavageErr := signalPfile.ReadAll()
+	if withCleavageErr != nil {
+		log.Fatal(withCleavageErr)
+	}
+
+	for _, row := range withCleavage {
+		headerList = append(headerList, row[0])
+
+	}
+	return
+}
 
 func main() {
 	// currentTime := time.Now()
@@ -366,32 +395,43 @@ func main() {
 	// p("bothResults", bothResults)
 	// p(len(bothResults))
 	blastHmmerSeqs := header2seq(bothResults, queryPep) // maybe merge combineBlastpHmmer to go here and return map[string][string]
-
+	signalPgff := "signalPout.gff3"
 	if signalPath != "" {
 		var signalpResults string
-		signalPgff := "signalPout.gff3"
+
 		if fileExists(signalPgff) == false {
 			p(signalPgff, "doesn't exist")
 			signalpResults = signalP(blastHmmerSeqs, signalPath, outDir)
 			p(signalpResults)
 		}
 
-		signalPfileName, signalPfileError := os.Open("signalPout.gff3")
-		if signalPfileError != nil {
-			log.Fatal(signalPfileError)
-		}
-		signalPfile := csv.NewReader(signalPfileName)
-		signalPfile.Comma = '\t'
-		signalPfile.Comment = '#'
-		withCleavage, withCleavageErr := signalPfile.ReadAll()
-		if withCleavageErr != nil {
-			log.Fatal(withCleavageErr)
-		}
-		p(withCleavage[0][0])
+		// signalPfileName, signalPfileError := os.Open("signalPout.gff3")
+		// if signalPfileError != nil {
+		// 	log.Fatal(signalPfileError)
+		// }
+		// signalPfile := csv.NewReader(signalPfileName)
+		// signalPfile.Comma = '\t'
+		// signalPfile.Comment = '#'
+		// withCleavage, withCleavageErr := signalPfile.ReadAll()
+		// if withCleavageErr != nil {
+		// 	log.Fatal(withCleavageErr)
+		// }
+		// withCleavageMap := make(map[string]string)
+		// for row := range withCleavage {
+		// 	withCleavageMap[row[0]] = blastHmmerSeqs[row[0]]
+		//
+		// }
+
+		// p(withCleavage[0][0])
 
 	} else {
 		p("Skipping signalP")
 		writeSeqMap(blastHmmerSeqs, outDir, "noSignalP")
+	}
+	if fileExists(signalPgff) {
+		signalPheaders := signalpGffList(signalPgff)
+		signalPseq := subsetSeqMap(signalPheaders, blastHmmerSeqs)
+		writeSeqMap(signalPseq, outDir, "withSignalP")
 	}
 
 	// p(willRun("mafft"))
