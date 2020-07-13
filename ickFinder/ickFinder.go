@@ -11,13 +11,11 @@ import (
 	"os"
 	"os/exec"
 	"strings"
-
-	intersect "github.com/juliangruber/go-intersect"
 )
 
 var p = fmt.Println
 
-var ickDB, queryPep, outDir string
+var ickDB, queryPep, outDir, signalPath string
 var help bool
 
 func init() {
@@ -26,6 +24,7 @@ func init() {
 	flag.StringVar(&queryPep, "pep", "", "fasta file with query peptides")
 	flag.StringVar(&outDir, "out", "", "output directory")
 	flag.StringVar(&outDir, "o", "", "output directory (shorthand)")
+	flag.StringVar(&signalPath, "signalp", "", "full path to signalP binary")
 	flag.BoolVar(&help, "help", false, "print usage")
 	flag.BoolVar(&help, "h", false, "print usage (shorthand)")
 	flag.Parse()
@@ -47,6 +46,8 @@ func init() {
 		}
 
 	}
+	// p("checking if signalP has been requested")
+	// log.Fatalln(signalPath == "")
 
 }
 
@@ -210,9 +211,16 @@ func mafft(inFasta string) (alignment string) {
 
 func hmmer(query, target, outDir string) (hmmerTargets []string) {
 	if willRun("hmmbuild") && willRun("hmmsearch") {
-		msa := []byte(mafft(target))
+		var msa []byte
+		var msaOutErr error
 		msaOutFile := outDir + "/ickDB.aln"
-		msaOutErr := ioutil.WriteFile(msaOutFile, msa, 0644)
+		if fileExists(msaOutFile) == false {
+			msa = []byte(mafft(target))
+			msaOutErr = ioutil.WriteFile(msaOutFile, msa, 0644)
+		} else {
+			p(msaOutFile, "exists")
+		}
+
 		if msaOutErr != nil {
 			log.Fatal(msaOutErr)
 		} else {
@@ -263,11 +271,11 @@ func combineBlastpHmmer(blastp, hmmer []string) map[string]bool {
 	combinedOut := make(map[string]bool)
 	bothLists := append(blastp, hmmer...)
 	for _, h := range bothLists {
-		p("header", h)
+		// p("header", h)
 		combinedOut[h] = true
 	}
-	p("BLASTP:", len(blastp))
-	p("HMMER:", len(hmmer))
+	// p("BLASTP:", len(blastp))
+	// p("HMMER:", len(hmmer))
 	return combinedOut
 }
 
@@ -348,16 +356,21 @@ func main() {
 	// p("hmmerResults")
 	// p(hmmerResults)
 
-	p(len(intersect.Hash(blastResults, hmmerResults)), intersect.Hash(blastResults, hmmerResults))
+	// p(len(intersect.Hash(blastResults, hmmerResults)), intersect.Hash(blastResults, hmmerResults))
 	var bothResults map[string]bool
 	bothResults = combineBlastpHmmer(blastResults, hmmerResults)
-	p("bothResults", bothResults)
-	p(len(bothResults))
+	// p("bothResults", bothResults)
+	// p(len(bothResults))
 	blastHmmerSeqs := header2seq(bothResults, queryPep) // maybe merge combineBlastpHmmer to go here and return map[string][string]
 
-	signalpResults := signalP(blastHmmerSeqs, outDir)
+	if signalPath != "" {
+		signalpResults := signalP(blastHmmerSeqs, outDir)
+		p(signalpResults)
+	} else {
+		p("Skipping signalP")
+		writeSeqMap(blastHmmerSeqs, outDir, "noSignalP")
+	}
 
-	p(signalpResults)
 	// p(willRun("mafft"))
 
 	// pepSeqPtr := flag.String("pep", "", "query peptide sequence")
