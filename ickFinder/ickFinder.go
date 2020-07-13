@@ -11,6 +11,7 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"time"
 )
 
 var p = fmt.Println
@@ -381,4 +382,12 @@ func main() {
 	// flag.PrintDefaults()
 
 	// fmt.Println("Hello, playground")
+	p(log.LUTC)
+	p(log.Ldate)
+	p(log.Llongfile)
+	p(log.Lmicroseconds)
+	p(log.Lshortfile)
+	p(log.Ltime)
+	currentTime := time.Now()
+	p(currentTime.Format("Mon Jul 13 11:40:31 EDT 2020"))
 }
