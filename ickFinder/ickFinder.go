@@ -11,6 +11,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -341,12 +342,40 @@ func signalP(pepSeq map[string]string, signalPath, outDir string) (signalpOutStr
 
 	return
 }
-func subsetSeqMap(subset []string, original map[string]string) map[string]string {
+func cleanHeader(originalMap map[string]string) map[string]string {
+	cleanHeaderMap := make(map[string]string)
+	reg, err := regexp.Compile("[^A-Za-z0-9 _  : -]+")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for header := range originalMap {
+
+		underScoreHeader := reg.ReplaceAllString(header, "_")
+		// p("header", header)
+		// p("underScoreHeader", underScoreHeader)
+		cleanHeaderMap[underScoreHeader] = header
+	}
+	return cleanHeaderMap
+
+}
+func subsetSeqMap(subset []string, originalMap map[string]string) map[string]string {
+
 	subMap := make(map[string]string)
+	p("subset:", len(subset))
+	p("originalMap:", len(originalMap))
+	ogHeaderMap := cleanHeader(originalMap)
+	p("ogHeaderMap:", len(ogHeaderMap))
 	for _, header := range subset {
-		if _, ok := original[header]; ok {
-			subMap[header] = original[header]
+
+		ogHeader := ogHeaderMap[header]
+		if _, ok := originalMap[ogHeader]; ok {
+
+			ogSeq := originalMap[ogHeader]
+			subMap[ogHeader] = ogSeq
 			//do something here
+		} else {
+			p("error:", header)
 		}
 	}
 	return subMap
@@ -429,7 +458,9 @@ func main() {
 		writeSeqMap(blastHmmerSeqs, outDir, "noSignalP")
 	}
 	if fileExists(signalPgff) {
+
 		signalPheaders := signalpGffList(signalPgff)
+		p(len(signalPheaders), len(blastHmmerSeqs))
 		signalPseq := subsetSeqMap(signalPheaders, blastHmmerSeqs)
 		writeSeqMap(signalPseq, outDir, "withSignalP")
 	}
