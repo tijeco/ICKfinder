@@ -148,7 +148,8 @@ func willRun(command string) (ran bool) {
 	return
 }
 
-func blastp(query, target, outDir, outName string, evalue float64) (blastTargets []string) {
+func blastp(query, target, outDir, outName string, onlyOne bool, evalue float64) (blastTargets []string) {
+	var blastP string
 	if willRun("makeblastdb") && willRun("blastp") {
 		// makeblastdb -in spiderICK.fasta  -dbtype prot
 		makeBlastDB := "makeblastdb -in " + target + " -dbtype prot"
@@ -161,7 +162,12 @@ func blastp(query, target, outDir, outName string, evalue float64) (blastTargets
 		} else {
 			// p("WHOOP!", makeBlastDBstdout)
 			// -query Stegotoxin.protein.fa -db spiderICK.fasta -outfmt 6
-			blastP := "blastp -query " + query + " -db " + target + " -outfmt 6 -max_target_seqs 1 -evalue " + fmt.Sprintf("%f", evalue)
+			if onlyOne {
+				blastP = "blastp -query " + query + " -db " + target + " -outfmt 6 -max_target_seqs 1 -evalue " + fmt.Sprintf("%f", evalue)
+			} else {
+				blastP = "blastp -query " + query + " -db " + target + " -outfmt 6 -evalue " + fmt.Sprintf("%f", evalue)
+			}
+
 			blastPcmd := exec.Command("sh", "-c", blastP)
 			blastPstdout, blastPerr := blastPcmd.Output()
 			if blastPerr != nil {
@@ -412,7 +418,7 @@ func signalpGffList(gffFile string) map[string]int {
 
 func silix(pepFileName string) (silixResults string) {
 
-	blastp(pepFileName, pepFileName, outDir, "blastallResults", 1e-3)
+	blastp(pepFileName, pepFileName, outDir, "blastallResults", false, 1e-3)
 	if willRun("silix") {
 		silixStr := "silix " + pepFileName + " " + outDir + "/blastallResults.txt"
 		silixCmd := exec.Command("sh", "-c", silixStr)
@@ -435,7 +441,7 @@ func main() {
 
 	// var inPep, verifiedICK string
 
-	blastResults := blastp(queryPep, ickDB, outDir, "blastpResults", 1e-3)
+	blastResults := blastp(queryPep, ickDB, outDir, "blastpResults", true, 1e-3)
 	// p("blastResults")
 	// p(blastResults)
 	// p(strings.Count(blastResults, "\n"))
