@@ -413,7 +413,7 @@ func signalpGffList(gffFile string) map[string]int {
 func silix(pepFileName string) (silixResults string) {
 
 	blastp(pepFileName, pepFileName, outDir, "blastallResults", 1e-3)
-	if willRun("sillix") {
+	if willRun("silix") {
 		silixStr := "silix " + pepFileName + " " + outDir + "/blastallResults.txt"
 		silixCmd := exec.Command("sh", "-c", silixStr)
 		p("running", silixStr)
