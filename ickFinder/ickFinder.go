@@ -12,6 +12,7 @@ import (
 	"os"
 	"os/exec"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -19,7 +20,7 @@ import (
 var p = fmt.Println
 
 var ickDB, queryPep, outDir, signalPath string
-var help bool
+var runSilix, help bool
 
 func init() {
 
@@ -28,6 +29,7 @@ func init() {
 	flag.StringVar(&outDir, "out", "", "output directory")
 	flag.StringVar(&outDir, "o", "", "output directory (shorthand)")
 	flag.StringVar(&signalPath, "signalp", "", "full path to signalP binary")
+	flag.BoolVar(&runSilix, "silix", false, "run silix on final output to cluster results")
 	flag.BoolVar(&help, "help", false, "print usage")
 	flag.BoolVar(&help, "h", false, "print usage (shorthand)")
 	flag.Parse()
@@ -146,7 +148,7 @@ func willRun(command string) (ran bool) {
 	return
 }
 
-func blastp(query, target, outDir string, evalue float64) (blastTargets []string) {
+func blastp(query, target, outDir, outName string, evalue float64) (blastTargets []string) {
 	if willRun("makeblastdb") && willRun("blastp") {
 		// makeblastdb -in spiderICK.fasta  -dbtype prot
 		makeBlastDB := "makeblastdb -in " + target + " -dbtype prot"
@@ -168,7 +170,7 @@ func blastp(query, target, outDir string, evalue float64) (blastTargets []string
 				p("running", blastP)
 				// p("WHOOP!", blastPstdout)
 				blastTargets = targetFromBlast(string(blastPstdout))
-				blastOutFile := outDir + "/blastpResults.txt"
+				blastOutFile := outDir + "/" + outName + ".txt"
 				blastOutErr := ioutil.WriteFile(blastOutFile, blastPstdout, 0644)
 				if blastOutErr != nil {
 					log.Fatal(blastOutErr)
@@ -327,17 +329,16 @@ func writeSeqMap(seqIn map[string]string, outDir, outName string) string {
 }
 
 func signalP(pepSeq map[string]string, signalPath, outDir string) (signalpOutStr string) {
-	if willRun("signalp") {
-		pepSeqFile := writeSeqMap(pepSeq, outDir, "preSignalP")
-		signalPstr := signalPath + " -gff3 -prefix signalPout -fasta " + pepSeqFile
-		signalPCmd := exec.Command("sh", "-c", signalPstr)
-		p("running", signalPstr)
-		signalPOut, signalPErr := signalPCmd.Output()
-		if signalPErr != nil {
-			log.Fatal(signalPErr)
-		} else {
-			signalpOutStr = string(signalPOut)
-		}
+
+	pepSeqFile := writeSeqMap(pepSeq, outDir, "preSignalP")
+	signalPstr := signalPath + " -gff3 -prefix signalPout -fasta " + pepSeqFile
+	signalPCmd := exec.Command("sh", "-c", signalPstr)
+	p("running", signalPstr)
+	signalPOut, signalPErr := signalPCmd.Output()
+	if signalPErr != nil {
+		log.Fatal(signalPErr)
+	} else {
+		signalpOutStr = string(signalPOut)
 	}
 
 	return
@@ -359,28 +360,31 @@ func cleanHeader(originalMap map[string]string) map[string]string {
 	return cleanHeaderMap
 
 }
-func subsetSeqMap(subset []string, originalMap map[string]string) map[string]string {
+
+func subsetSeqMap(subset map[string]int, originalMap map[string]string) map[string]string {
 
 	subMap := make(map[string]string)
 	p("subset:", len(subset))
 	p("originalMap:", len(originalMap))
 	ogHeaderMap := cleanHeader(originalMap)
 	p("ogHeaderMap:", len(ogHeaderMap))
-	for _, header := range subset {
-
+	for header, cleavageSite := range subset {
 		ogHeader := ogHeaderMap[header]
 		if _, ok := originalMap[ogHeader]; ok {
-
 			ogSeq := originalMap[ogHeader]
-			subMap[ogHeader] = ogSeq
-			//do something here
+			ogMature := ogSeq[cleavageSite:]
+			if len(ogSeq) < 200 && strings.Count(ogMature, "C") > 5 {
+				subMap[ogHeader] = ogSeq
+			}
 		} else {
 			p("error:", header)
 		}
 	}
 	return subMap
 }
-func signalpGffList(gffFile string) (headerList []string) {
+
+func signalpGffList(gffFile string) map[string]int {
+	signalMap := make(map[string]int)
 	signalPfileName, signalPfileError := os.Open(gffFile)
 	if signalPfileError != nil {
 		log.Fatal(signalPfileError)
@@ -394,20 +398,44 @@ func signalpGffList(gffFile string) (headerList []string) {
 	}
 
 	for _, row := range withCleavage {
-		headerList = append(headerList, row[0])
+		header := row[0]
+		cleaveSite, cleaveErr := strconv.Atoi(row[4])
+		if cleaveErr != nil {
+			log.Fatal(cleaveErr)
+		} else {
+			signalMap[header] = cleaveSite
+		}
+
+	}
+	return signalMap
+}
+
+func silix(pepFileName string) (silixResults string) {
+
+	blastp(pepFileName, pepFileName, outDir, "blastallResults", 1e-3)
+	if willRun("sillix") {
+		silixStr := "silix " + pepFileName + " " + outDir + "/blastallResults.txt"
+		silixCmd := exec.Command("sh", "-c", silixStr)
+		p("running", silixStr)
+		silixOut, silixErr := silixCmd.Output()
+		if silixErr != nil {
+			log.Fatal(silixErr)
+		} else {
+			silixResults = string(silixOut)
+		}
 
 	}
 	return
 }
 
 func main() {
-	// currentTime := time.Now()
+	var firstRoundFinalist string
 	p(time.Now().Format("15:04:05 Mon Jan-02-2006"))
 	// os.Exit(1)
 
 	// var inPep, verifiedICK string
 
-	blastResults := blastp(queryPep, ickDB, outDir, 1e-3) // add err
+	blastResults := blastp(queryPep, ickDB, outDir, "blastpResults", 1e-3)
 	// p("blastResults")
 	// p(blastResults)
 	// p(strings.Count(blastResults, "\n"))
@@ -462,7 +490,13 @@ func main() {
 		signalPheaders := signalpGffList(signalPgff)
 		p(len(signalPheaders), len(blastHmmerSeqs))
 		signalPseq := subsetSeqMap(signalPheaders, blastHmmerSeqs)
-		writeSeqMap(signalPseq, outDir, "withSignalP")
+		firstRoundFinalist = writeSeqMap(signalPseq, outDir, "firstRoundFinalist")
+	}
+	if runSilix {
+		if firstRoundFinalist != "" && fileExists(firstRoundFinalist) {
+			silixResults := silix(firstRoundFinalist)
+			p(silixResults)
+		}
 	}
 
 	// p(willRun("mafft"))
