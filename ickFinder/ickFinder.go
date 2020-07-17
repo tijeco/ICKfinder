@@ -541,6 +541,7 @@ func main() {
 	for i := 0; i < iterate; i++ {
 		if i == 0 {
 			currentFinalist, _ = runAll(ickDB, i)
+			timeStatus("writing to: " + currentFinalist)
 		} else {
 			newDB := concatFasta(ickDB, currentFinalist, "newDB_"+strconv.Itoa(i))
 			currentFinalist, numICK = runAll(newDB, i)
