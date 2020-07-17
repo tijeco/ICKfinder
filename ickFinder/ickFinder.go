@@ -65,7 +65,8 @@ type fasta struct {
 }
 
 func timeStatus(status string) {
-	p(time.Now().Format("15:04:05 Mon Jan-02-2006"), status)
+	p(time.Now().Format("15:04:05 Mon Jan-02-2006"), "    ", status)
+	p()
 }
 
 func logFatalErr(err error) {
@@ -150,11 +151,11 @@ func fileExists(filename string) bool {
 
 func willRun(command string) (ran bool) {
 	commandPath, err := exec.LookPath(command)
-	p("Checking if " + command + " is installed")
+	timeStatus("Checking if " + command + " is installed")
 	if err != nil {
 		log.Fatal(command + " not found in $PATH, exiting now")
 	} else {
-		p(command+" is available at:\n", commandPath)
+		timeStatus(command + " is available at: " + commandPath)
 		ran = true
 	}
 	return
@@ -244,7 +245,7 @@ func hmmer(query, target, outDir string) (hmmerTargets []string) {
 			msa = []byte(mafft(target))
 			msaOutErr = ioutil.WriteFile(msaOutFile, msa, 0644)
 		} else {
-			p(msaOutFile, "exists")
+			timeStatus(msaOutFile + " already exists, will use it")
 		}
 
 		if msaOutErr != nil {
