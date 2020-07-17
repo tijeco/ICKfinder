@@ -577,7 +577,12 @@ func main() {
 			p(fileExists(currentFinalist))
 			if currentFinalist != "" && fileExists(currentFinalist) {
 				silixResults := silix(currentFinalist)
-				p(silixResults)
+				silixOutFile := outDir + "/silixOut.txt"
+				silixOutErr := ioutil.WriteFile(silixOutFile, []byte(silixResults), 0644)
+				if silixOutErr != nil {
+					log.Fatal(silixOutErr)
+				}
+				// p(silixResults)
 			}
 		}
 	}
