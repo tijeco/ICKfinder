@@ -68,6 +68,12 @@ func timeStatus(status string) {
 	p(time.Now().Format("15:04:05 Mon Jan-02-2006"), status)
 }
 
+func logFatalErr(err error) {
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
 func buildFasta(header string, seq bytes.Buffer) (record fasta) {
 	fields := strings.SplitN(header, " ", 2)
 
@@ -495,19 +501,24 @@ func runAll(inPep string, n int) (outPep string, numPep int) {
 			p(signalPgff, "doesn't exist")
 			signalpResults = signalP(blastHmmerSeqs, signalPath, outDir)
 			p(signalpResults)
+			newGFF := outDir + "signalPout_" + strconv.Itoa(n) + ".gff3"
+			e := os.Rename(signalPgff, newGFF)
+			if e != nil {
+				log.Fatal(e)
+			}
+
 		}
 
-	} else {
-		p("Skipping signalP")
-		writeSeqMap(blastHmmerSeqs, outDir, "noSignalP"+strconv.Itoa(n))
-	}
-	if fileExists(signalPgff) {
+	} else if fileExists(signalPgff) {
 
 		signalPheaders := signalpGffList(signalPgff)
 		p(len(signalPheaders), len(blastHmmerSeqs))
 		signalPseq := subsetSeqMap(signalPheaders, blastHmmerSeqs)
 		outPep = writeSeqMap(signalPseq, outDir, "round_"+strconv.Itoa(n))
 		numPep = len(signalPseq)
+	} else {
+		p("Skipping signalP")
+		writeSeqMap(blastHmmerSeqs, outDir, "noSignalP"+strconv.Itoa(n))
 	}
 
 	// p(time.Now().Format("15:04:05 Mon Jan-02-2006"))
