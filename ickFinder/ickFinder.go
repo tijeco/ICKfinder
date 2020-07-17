@@ -75,6 +75,13 @@ func logFatalErr(err error) {
 	}
 }
 
+func checkDependencies(dependencies []string) (good2go bool) {
+	for _, dependency := range dependencies {
+		good2go = willRun(dependency)
+	}
+	return
+}
+
 func buildFasta(header string, seq bytes.Buffer) (record fasta) {
 	fields := strings.SplitN(header, " ", 2)
 
@@ -163,44 +170,44 @@ func willRun(command string) (ran bool) {
 
 func blastp(query, target, outDir, outName string, onlyOne bool, evalue float64) (blastTargets []string) {
 	var blastP string
-	if willRun("makeblastdb") && willRun("blastp") {
-		// makeblastdb -in spiderICK.fasta  -dbtype prot
-		makeBlastDB := "makeblastdb -in " + target + " -dbtype prot"
-		makeBlastDBcmd := exec.Command("sh", "-c", makeBlastDB)
-		_, makeBlastDBerr := makeBlastDBcmd.Output()
-		timeStatus(makeBlastDB)
-		// p("running:", makeBlastDB)
-		if makeBlastDBerr != nil {
-			p(":(")
-			log.Fatal(makeBlastDBerr)
+	// if willRun("makeblastdb") && willRun("blastp") {
+	// makeblastdb -in spiderICK.fasta  -dbtype prot
+	makeBlastDB := "makeblastdb -in " + target + " -dbtype prot"
+	makeBlastDBcmd := exec.Command("sh", "-c", makeBlastDB)
+	_, makeBlastDBerr := makeBlastDBcmd.Output()
+	timeStatus(makeBlastDB)
+	// p("running:", makeBlastDB)
+	if makeBlastDBerr != nil {
+		p(":(")
+		log.Fatal(makeBlastDBerr)
+	} else {
+		// p("WHOOP!", makeBlastDBstdout)
+		// -query Stegotoxin.protein.fa -db spiderICK.fasta -outfmt 6
+		if onlyOne {
+			blastP = "blastp -query " + query + " -db " + target + " -outfmt 6 -max_target_seqs 1 -evalue " + fmt.Sprintf("%f", evalue)
 		} else {
-			// p("WHOOP!", makeBlastDBstdout)
-			// -query Stegotoxin.protein.fa -db spiderICK.fasta -outfmt 6
-			if onlyOne {
-				blastP = "blastp -query " + query + " -db " + target + " -outfmt 6 -max_target_seqs 1 -evalue " + fmt.Sprintf("%f", evalue)
-			} else {
-				blastP = "blastp -query " + query + " -db " + target + " -outfmt 6 -evalue " + fmt.Sprintf("%f", evalue)
-			}
+			blastP = "blastp -query " + query + " -db " + target + " -outfmt 6 -evalue " + fmt.Sprintf("%f", evalue)
+		}
 
-			blastPcmd := exec.Command("sh", "-c", blastP)
-			blastPstdout, blastPerr := blastPcmd.Output()
-			if blastPerr != nil {
-				log.Fatal(blastPerr)
-			} else {
-				timeStatus(blastP)
-				// p("running", blastP)
-				// p("WHOOP!", blastPstdout)
-				blastTargets = targetFromBlast(string(blastPstdout))
-				blastOutFile := outDir + "/" + outName + ".txt"
-				blastOutErr := ioutil.WriteFile(blastOutFile, blastPstdout, 0644)
-				if blastOutErr != nil {
-					log.Fatal(blastOutErr)
-				}
+		blastPcmd := exec.Command("sh", "-c", blastP)
+		blastPstdout, blastPerr := blastPcmd.Output()
+		if blastPerr != nil {
+			log.Fatal(blastPerr)
+		} else {
+			timeStatus(blastP)
+			// p("running", blastP)
+			// p("WHOOP!", blastPstdout)
+			blastTargets = targetFromBlast(string(blastPstdout))
+			blastOutFile := outDir + "/" + outName + ".txt"
+			blastOutErr := ioutil.WriteFile(blastOutFile, blastPstdout, 0644)
+			if blastOutErr != nil {
+				log.Fatal(blastOutErr)
 			}
-
 		}
 
 	}
+
+	// }
 	return
 }
 
@@ -219,80 +226,80 @@ func targetFromBlast(blastout string) (targets []string) {
 }
 
 func mafft(inFasta string) (alignment string) {
-	if willRun("mafft") {
-		mafftStr := "mafft --localpair --maxiterate 1000 " + inFasta
-		mafftCmd := exec.Command("sh", "-c", mafftStr)
-		timeStatus(mafftStr)
-		// p("running", mafftStr)
-		mafftStdout, mafftErr := mafftCmd.Output()
-		if mafftErr != nil {
-			log.Fatal(mafftErr)
-		} else {
+	// if willRun("mafft") {
+	mafftStr := "mafft --localpair --maxiterate 1000 " + inFasta
+	mafftCmd := exec.Command("sh", "-c", mafftStr)
+	timeStatus(mafftStr)
+	// p("running", mafftStr)
+	mafftStdout, mafftErr := mafftCmd.Output()
+	if mafftErr != nil {
+		log.Fatal(mafftErr)
+	} else {
 
-			// p("WHOOP!", blastPstdout)
-			alignment = string(mafftStdout)
-		}
+		// p("WHOOP!", blastPstdout)
+		alignment = string(mafftStdout)
 	}
+	// }
 	return
 }
 
 func hmmer(query, target, outDir string) (hmmerTargets []string) {
-	if willRun("hmmbuild") && willRun("hmmsearch") {
-		var msa []byte
-		var msaOutErr error
-		msaOutFile := outDir + "/ickDB.aln"
-		if fileExists(msaOutFile) == false {
-			msa = []byte(mafft(target))
-			msaOutErr = ioutil.WriteFile(msaOutFile, msa, 0644)
-		} else {
-			timeStatus(msaOutFile + " already exists, will use it")
-		}
-
-		if msaOutErr != nil {
-			log.Fatal(msaOutErr)
-		} else {
-			hmmOutFile := msaOutFile + ".hmm"
-			hmmbuild := "hmmbuild " + hmmOutFile + " " + msaOutFile
-			hmmbuildCmd := exec.Command("sh", "-c", hmmbuild)
-			timeStatus(hmmbuild)
-			// p("running", hmmbuild)
-			_, hmmbuildErr := hmmbuildCmd.Output()
-			if hmmbuildErr != nil {
-				log.Fatal(hmmbuildErr)
-			} else {
-				hmmsearch := "hmmsearch --notextw " + hmmOutFile + " " + query
-				hmmsearchCmd := exec.Command("sh", "-c", hmmsearch)
-				timeStatus(hmmsearch)
-				// p("running", hmmsearch)
-				hmmsearchOut, hmmsearchErr := hmmsearchCmd.Output()
-				if hmmsearchErr != nil {
-					log.Fatal(hmmsearchErr)
-				} else {
-					hmmsearchOutFile := outDir + "/hmmerResults.txt"
-					hmmsearchOutErr := ioutil.WriteFile(hmmsearchOutFile, hmmsearchOut, 0644)
-					if hmmsearchOutErr != nil {
-						log.Fatal(hmmsearchOutErr)
-					} else {
-						hmmsearchOutStr := string(hmmsearchOut)
-						hmmsearchRows := strings.Split(hmmsearchOutStr, "\n")[18:]
-						// p(hmmsearchRows)
-						for _, row := range hmmsearchRows {
-							columns := strings.Fields(row)
-							if len(columns) == 9 {
-								hmmerTargets = append(hmmerTargets, columns[8])
-							} else {
-								break
-							}
-							// p(len(strings.Fields(row)), row)
-						}
-
-					}
-				}
-
-			}
-		}
-
+	// if willRun("hmmbuild") && willRun("hmmsearch") {
+	var msa []byte
+	var msaOutErr error
+	msaOutFile := outDir + "/ickDB.aln"
+	if fileExists(msaOutFile) == false {
+		msa = []byte(mafft(target))
+		msaOutErr = ioutil.WriteFile(msaOutFile, msa, 0644)
+	} else {
+		timeStatus(msaOutFile + " already exists, will use it")
 	}
+
+	if msaOutErr != nil {
+		log.Fatal(msaOutErr)
+	} else {
+		hmmOutFile := msaOutFile + ".hmm"
+		hmmbuild := "hmmbuild " + hmmOutFile + " " + msaOutFile
+		hmmbuildCmd := exec.Command("sh", "-c", hmmbuild)
+		timeStatus(hmmbuild)
+		// p("running", hmmbuild)
+		_, hmmbuildErr := hmmbuildCmd.Output()
+		if hmmbuildErr != nil {
+			log.Fatal(hmmbuildErr)
+		} else {
+			hmmsearch := "hmmsearch --notextw " + hmmOutFile + " " + query
+			hmmsearchCmd := exec.Command("sh", "-c", hmmsearch)
+			timeStatus(hmmsearch)
+			// p("running", hmmsearch)
+			hmmsearchOut, hmmsearchErr := hmmsearchCmd.Output()
+			if hmmsearchErr != nil {
+				log.Fatal(hmmsearchErr)
+			} else {
+				hmmsearchOutFile := outDir + "/hmmerResults.txt"
+				hmmsearchOutErr := ioutil.WriteFile(hmmsearchOutFile, hmmsearchOut, 0644)
+				if hmmsearchOutErr != nil {
+					log.Fatal(hmmsearchOutErr)
+				} else {
+					hmmsearchOutStr := string(hmmsearchOut)
+					hmmsearchRows := strings.Split(hmmsearchOutStr, "\n")[18:]
+					// p(hmmsearchRows)
+					for _, row := range hmmsearchRows {
+						columns := strings.Fields(row)
+						if len(columns) == 9 {
+							hmmerTargets = append(hmmerTargets, columns[8])
+						} else {
+							break
+						}
+						// p(len(strings.Fields(row)), row)
+					}
+
+				}
+			}
+
+		}
+	}
+
+	// }
 	return
 }
 
@@ -499,10 +506,10 @@ func runAll(inPep string, n int) (outPep string, numPep int) {
 		var signalpResults string
 
 		if fileExists(signalPgff) == false {
-			p(signalPgff, "doesn't exist")
+			p(signalPgff, "doesn't exist, will generate it now")
 			signalpResults = signalP(blastHmmerSeqs, signalPath, outDir)
 			p(signalpResults)
-			newGFF := outDir + "signalPout_" + strconv.Itoa(n) + ".gff3"
+			newGFF := outDir + "/signalPout_" + strconv.Itoa(n) + ".gff3"
 			e := os.Rename(signalPgff, newGFF)
 			if e != nil {
 				log.Fatal(e)
@@ -537,38 +544,41 @@ func main() {
 	// startingIter := 0
 	// currentOutName := "round_" + strconv.Itoa(startingIter)
 
-	if signalPath == "" && iterate > 1 {
-		p("Please provide the path for signalp using -signalp to use -n for >1 iterations")
-		p("Setting n iterations to 1")
-		iterate = 1
-	}
+	dependencies := []string{"blastp", "makeblastdb", "hmmbuild", "hmmsearch", "mafft"}
+	if checkDependencies(dependencies) {
+		if signalPath == "" && iterate > 1 {
+			p("Please provide the path for signalp using -signalp to use -n for >1 iterations")
+			p("Setting n iterations to 1")
+			iterate = 1
+		}
 
-	for i := 0; i < iterate; i++ {
-		if i == 0 {
-			currentFinalist, _ = runAll(ickDB, i)
-			timeStatus("writing to: " + currentFinalist)
-		} else {
-			newDB := concatFasta(ickDB, currentFinalist, "newDB_"+strconv.Itoa(i))
-			currentFinalist, numICK = runAll(newDB, i)
-			if numICK > ickTally[0] {
-				ickTally[0] = numICK
-				ickTally[1] = 0
+		for i := 0; i < iterate; i++ {
+			if i == 0 {
+				currentFinalist, _ = runAll(ickDB, i)
+				timeStatus("writing to: " + currentFinalist)
 			} else {
-				ickTally[1]++
-			}
-			if ickTally[1] > 4 {
-				break
+				newDB := concatFasta(ickDB, currentFinalist, "newDB_"+strconv.Itoa(i))
+				currentFinalist, numICK = runAll(newDB, i)
+				if numICK > ickTally[0] {
+					ickTally[0] = numICK
+					ickTally[1] = 0
+				} else {
+					ickTally[1]++
+				}
+				if ickTally[1] > 4 {
+					break
+				}
+
 			}
 
 		}
-
-	}
-	if runSilix {
-		timeStatus(currentFinalist)
-		p(fileExists(currentFinalist))
-		if currentFinalist != "" && fileExists(currentFinalist) {
-			silixResults := silix(currentFinalist)
-			p(silixResults)
+		if runSilix {
+			timeStatus(currentFinalist)
+			p(fileExists(currentFinalist))
+			if currentFinalist != "" && fileExists(currentFinalist) {
+				silixResults := silix(currentFinalist)
+				p(silixResults)
+			}
 		}
 	}
 
