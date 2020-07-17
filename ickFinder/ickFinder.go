@@ -558,6 +558,8 @@ func main() {
 
 	}
 	if runSilix {
+		timeStatus(currentFinalist)
+		p(fileExists(currentFinalist))
 		if currentFinalist != "" && fileExists(currentFinalist) {
 			silixResults := silix(currentFinalist)
 			p(silixResults)
