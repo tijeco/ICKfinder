@@ -21,6 +21,7 @@ var p = fmt.Println
 
 var ickDB, queryPep, outDir, signalPath string
 var runSilix, help bool
+var iterate int
 
 func init() {
 
@@ -30,6 +31,7 @@ func init() {
 	flag.StringVar(&outDir, "o", "", "output directory (shorthand)")
 	flag.StringVar(&signalPath, "signalp", "", "full path to signalP binary")
 	flag.BoolVar(&runSilix, "silix", false, "run silix on final output to cluster results")
+	flag.IntVar(&iterate, "n", 1, "Number of times to iterate")
 	flag.BoolVar(&help, "help", false, "print usage")
 	flag.BoolVar(&help, "h", false, "print usage (shorthand)")
 	flag.Parse()
@@ -60,6 +62,10 @@ type fasta struct {
 	id   string
 	desc string
 	seq  string
+}
+
+func timeStatus(status string) {
+	p(time.Now().Format("15:04:05 Mon Jan-02-2006"), status)
 }
 
 func buildFasta(header string, seq bytes.Buffer) (record fasta) {
@@ -155,7 +161,8 @@ func blastp(query, target, outDir, outName string, onlyOne bool, evalue float64)
 		makeBlastDB := "makeblastdb -in " + target + " -dbtype prot"
 		makeBlastDBcmd := exec.Command("sh", "-c", makeBlastDB)
 		_, makeBlastDBerr := makeBlastDBcmd.Output()
-		p("running:", makeBlastDB)
+		timeStatus(makeBlastDB)
+		// p("running:", makeBlastDB)
 		if makeBlastDBerr != nil {
 			p(":(")
 			log.Fatal(makeBlastDBerr)
@@ -173,7 +180,8 @@ func blastp(query, target, outDir, outName string, onlyOne bool, evalue float64)
 			if blastPerr != nil {
 				log.Fatal(blastPerr)
 			} else {
-				p("running", blastP)
+				timeStatus(blastP)
+				// p("running", blastP)
 				// p("WHOOP!", blastPstdout)
 				blastTargets = targetFromBlast(string(blastPstdout))
 				blastOutFile := outDir + "/" + outName + ".txt"
@@ -207,7 +215,8 @@ func mafft(inFasta string) (alignment string) {
 	if willRun("mafft") {
 		mafftStr := "mafft --localpair --maxiterate 1000 " + inFasta
 		mafftCmd := exec.Command("sh", "-c", mafftStr)
-		p("running", mafftStr)
+		timeStatus(mafftStr)
+		// p("running", mafftStr)
 		mafftStdout, mafftErr := mafftCmd.Output()
 		if mafftErr != nil {
 			log.Fatal(mafftErr)
@@ -238,14 +247,16 @@ func hmmer(query, target, outDir string) (hmmerTargets []string) {
 			hmmOutFile := msaOutFile + ".hmm"
 			hmmbuild := "hmmbuild " + hmmOutFile + " " + msaOutFile
 			hmmbuildCmd := exec.Command("sh", "-c", hmmbuild)
-			p("running", hmmbuild)
+			timeStatus(hmmbuild)
+			// p("running", hmmbuild)
 			_, hmmbuildErr := hmmbuildCmd.Output()
 			if hmmbuildErr != nil {
 				log.Fatal(hmmbuildErr)
 			} else {
 				hmmsearch := "hmmsearch --notextw " + hmmOutFile + " " + query
 				hmmsearchCmd := exec.Command("sh", "-c", hmmsearch)
-				p("running", hmmsearch)
+				timeStatus(hmmsearch)
+				// p("running", hmmsearch)
 				hmmsearchOut, hmmsearchErr := hmmsearchCmd.Output()
 				if hmmsearchErr != nil {
 					log.Fatal(hmmsearchErr)
@@ -288,6 +299,23 @@ func combineBlastpHmmer(blastp, hmmer []string) map[string]bool {
 	// p("BLASTP:", len(blastp))
 	// p("HMMER:", len(hmmer))
 	return combinedOut
+}
+
+func file2SeqMap(f string) map[string]string {
+	seqOut := make(map[string]string)
+	if fileExists(f) {
+		fastaFh, err := os.Open(f)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer fastaFh.Close()
+
+		for record := range parseFasta(fastaFh) {
+			seqOut[record.id] = record.seq
+		}
+
+	}
+	return seqOut
 }
 
 func header2seq(bothMap map[string]bool, seqFile string) map[string]string {
@@ -334,12 +362,26 @@ func writeSeqMap(seqIn map[string]string, outDir, outName string) string {
 	return outFile
 }
 
+func concatFasta(f1, f2, outName string) (outFile string) {
+	if fileExists(f1) && fileExists(f2) {
+		seqMap1 := file2SeqMap(f1)
+		seqMap2 := file2SeqMap(f2)
+		for h, s := range seqMap1 {
+			seqMap2[h] = s
+		}
+		outFile = writeSeqMap(seqMap2, outDir, outName)
+
+	}
+	return
+}
+
 func signalP(pepSeq map[string]string, signalPath, outDir string) (signalpOutStr string) {
 
 	pepSeqFile := writeSeqMap(pepSeq, outDir, "preSignalP")
 	signalPstr := signalPath + " -gff3 -prefix signalPout -fasta " + pepSeqFile
 	signalPCmd := exec.Command("sh", "-c", signalPstr)
-	p("running", signalPstr)
+	timeStatus(signalPstr)
+	// p("running", signalPstr)
 	signalPOut, signalPErr := signalPCmd.Output()
 	if signalPErr != nil {
 		log.Fatal(signalPErr)
@@ -422,7 +464,8 @@ func silix(pepFileName string) (silixResults string) {
 	if willRun("silix") {
 		silixStr := "silix " + pepFileName + " " + outDir + "/blastallResults.txt"
 		silixCmd := exec.Command("sh", "-c", silixStr)
-		p("running", silixStr)
+		timeStatus(silixStr)
+		// p("running", silixStr)
 		silixOut, silixErr := silixCmd.Output()
 		if silixErr != nil {
 			log.Fatal(silixErr)
@@ -434,31 +477,17 @@ func silix(pepFileName string) (silixResults string) {
 	return
 }
 
-func main() {
-	var firstRoundFinalist string
-	p(time.Now().Format("15:04:05 Mon Jan-02-2006"))
-	// os.Exit(1)
-
-	// var inPep, verifiedICK string
-
-	blastResults := blastp(queryPep, ickDB, outDir, "blastpResults", true, 1e-3)
-	// p("blastResults")
-	// p(blastResults)
-	// p(strings.Count(blastResults, "\n"))
-	// blastTarget := targetFromBlast(blastResults)
-	// p(blastTarget)
-
-	hmmerResults := hmmer(queryPep, ickDB, outDir) // add err
-	// p("hmmerResults")
-	// p(hmmerResults)
-
-	// p(len(intersect.Hash(blastResults, hmmerResults)), intersect.Hash(blastResults, hmmerResults))
+func runAll(inPep string, n int) (outPep string, numPep int) {
 	var bothResults map[string]bool
+
+	// var firstRoundFinalist string
+	blastResults := blastp(queryPep, inPep, outDir, "blastpResults", true, 1e-3)
+
+	hmmerResults := hmmer(queryPep, inPep, outDir) // add err
+
 	bothResults = combineBlastpHmmer(blastResults, hmmerResults)
-	// p("bothResults", bothResults)
-	// p(len(bothResults))
 	blastHmmerSeqs := header2seq(bothResults, queryPep) // maybe merge combineBlastpHmmer to go here and return map[string][string]
-	signalPgff := "signalPout.gff3"
+	signalPgff := "signalPout.gff3"                     // should potentiall move the signalP gffFile
 	if signalPath != "" {
 		var signalpResults string
 
@@ -468,53 +497,59 @@ func main() {
 			p(signalpResults)
 		}
 
-		// signalPfileName, signalPfileError := os.Open("signalPout.gff3")
-		// if signalPfileError != nil {
-		// 	log.Fatal(signalPfileError)
-		// }
-		// signalPfile := csv.NewReader(signalPfileName)
-		// signalPfile.Comma = '\t'
-		// signalPfile.Comment = '#'
-		// withCleavage, withCleavageErr := signalPfile.ReadAll()
-		// if withCleavageErr != nil {
-		// 	log.Fatal(withCleavageErr)
-		// }
-		// withCleavageMap := make(map[string]string)
-		// for row := range withCleavage {
-		// 	withCleavageMap[row[0]] = blastHmmerSeqs[row[0]]
-		//
-		// }
-
-		// p(withCleavage[0][0])
-
 	} else {
 		p("Skipping signalP")
-		writeSeqMap(blastHmmerSeqs, outDir, "noSignalP")
+		writeSeqMap(blastHmmerSeqs, outDir, "noSignalP"+strconv.Itoa(n))
 	}
 	if fileExists(signalPgff) {
 
 		signalPheaders := signalpGffList(signalPgff)
 		p(len(signalPheaders), len(blastHmmerSeqs))
 		signalPseq := subsetSeqMap(signalPheaders, blastHmmerSeqs)
-		firstRoundFinalist = writeSeqMap(signalPseq, outDir, "firstRoundFinalist")
+		outPep = writeSeqMap(signalPseq, outDir, "round_"+strconv.Itoa(n))
+		numPep = len(signalPseq)
+	}
+
+	// p(time.Now().Format("15:04:05 Mon Jan-02-2006"))
+	return outPep, numPep
+}
+func main() {
+	ickTally := [2]int{}
+	var currentFinalist string
+	var numICK int
+	// startingIter := 0
+	// currentOutName := "round_" + strconv.Itoa(startingIter)
+
+	if signalPath == "" && iterate > 1 {
+		p("Please provide the path for signalp using -signalp to use -n for >1 iterations")
+		p("Setting n iterations to 1")
+		iterate = 1
+	}
+
+	for i := 0; i < iterate; i++ {
+		if i == 0 {
+			currentFinalist, _ = runAll(ickDB, i)
+		} else {
+			newDB := concatFasta(ickDB, currentFinalist, "newDB_"+strconv.Itoa(i))
+			currentFinalist, numICK = runAll(newDB, i)
+			if numICK > ickTally[0] {
+				ickTally[0] = numICK
+				ickTally[1] = 0
+			} else {
+				ickTally[1]++
+			}
+			if ickTally[1] > 4 {
+				break
+			}
+
+		}
+
 	}
 	if runSilix {
-		if firstRoundFinalist != "" && fileExists(firstRoundFinalist) {
-			silixResults := silix(firstRoundFinalist)
+		if currentFinalist != "" && fileExists(currentFinalist) {
+			silixResults := silix(currentFinalist)
 			p(silixResults)
 		}
 	}
 
-	// p(willRun("mafft"))
-
-	// pepSeqPtr := flag.String("pep", "", "query peptide sequence")
-	// dbSeqPtr := flag.String("db", "", "reference peptide sequence")
-	// outPtr := flag.String("out", "", "reference peptide sequence")
-
-	// flag.Parse()
-	// flag.PrintDefaults()
-
-	// fmt.Println("Hello, playground")
-
-	p(time.Now().Format("15:04:05 Mon Jan-02-2006"))
 }
