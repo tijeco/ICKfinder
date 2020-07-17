@@ -507,6 +507,11 @@ func runAll(inPep string, n int) (outPep string, numPep int) {
 			if e != nil {
 				log.Fatal(e)
 			}
+			signalPheaders := signalpGffList(newGFF)
+			p(len(signalPheaders), len(blastHmmerSeqs))
+			signalPseq := subsetSeqMap(signalPheaders, blastHmmerSeqs)
+			outPep = writeSeqMap(signalPseq, outDir, "round_"+strconv.Itoa(n))
+			numPep = len(signalPseq)
 
 		}
 
