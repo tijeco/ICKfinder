@@ -243,11 +243,11 @@ func mafft(inFasta string) (alignment string) {
 	return
 }
 
-func hmmer(query, target, outDir string) (hmmerTargets []string) {
+func hmmer(query, target, outDir string, n int) (hmmerTargets []string) {
 	// if willRun("hmmbuild") && willRun("hmmsearch") {
 	var msa []byte
 	var msaOutErr error
-	msaOutFile := outDir + "/ickDB.aln"
+	msaOutFile := outDir + "/ickDB_" + strconv.Itoa(n) + ".aln"
 	if fileExists(msaOutFile) == false {
 		msa = []byte(mafft(target))
 		msaOutErr = ioutil.WriteFile(msaOutFile, msa, 0644)
@@ -497,7 +497,7 @@ func runAll(inPep string, n int) (outPep string, numPep int) {
 	// var firstRoundFinalist string
 	blastResults := blastp(queryPep, inPep, outDir, "blastpResults", true, 1e-3)
 
-	hmmerResults := hmmer(queryPep, inPep, outDir) // add err
+	hmmerResults := hmmer(queryPep, inPep, outDir, n)
 
 	bothResults = combineBlastpHmmer(blastResults, hmmerResults)
 	blastHmmerSeqs := header2seq(bothResults, queryPep) // maybe merge combineBlastpHmmer to go here and return map[string][string]
