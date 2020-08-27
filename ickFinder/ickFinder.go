@@ -392,7 +392,7 @@ func concatFasta(f1, f2, outName string) (outFile string) {
 func signalP(pepSeq map[string]string, signalPath, outDir string) (signalpOutStr string) {
 
 	pepSeqFile := writeSeqMap(pepSeq, outDir, "preSignalP")
-	signalPstr := signalPath + " -gff3 -prefix signalPout -fasta -mature" + pepSeqFile
+	signalPstr := signalPath + " -gff3 -prefix signalPout -mature -fasta " + pepSeqFile
 	signalPCmd := exec.Command("sh", "-c", signalPstr)
 	timeStatus(signalPstr)
 	// p("running", signalPstr)
