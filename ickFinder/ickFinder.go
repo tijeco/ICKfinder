@@ -392,7 +392,7 @@ func concatFasta(f1, f2, outName string) (outFile string) {
 func signalP(pepSeq map[string]string, signalPath, outDir string) (signalpOutStr string) {
 
 	pepSeqFile := writeSeqMap(pepSeq, outDir, "preSignalP")
-	signalPstr := signalPath + " -gff3 -prefix signalPout -mature -fasta " + pepSeqFile
+	signalPstr := signalPath + " -gff3 -prefix signalPout -fasta " + pepSeqFile
 	signalPCmd := exec.Command("sh", "-c", signalPstr)
 	timeStatus(signalPstr)
 	// p("running", signalPstr)
@@ -423,9 +423,14 @@ func cleanHeader(originalMap map[string]string) map[string]string {
 
 }
 
-func subsetSeqMap(subset map[string]int, originalMap map[string]string) map[string]string {
+// the following function should return two structures,
+// 1. Header and sequence
+// 2. Header and and CysPattern
 
-	subMap := make(map[string]string)
+func subsetSeqMap(subset map[string]int, originalMap map[string]string) (subMap, patternMap map[string]string) {
+
+	subMap = make(map[string]string)
+	patternMap = make(map[string]string)
 	p("subset:", len(subset))
 	p("originalMap:", len(originalMap))
 	ogHeaderMap := cleanHeader(originalMap)
@@ -437,12 +442,13 @@ func subsetSeqMap(subset map[string]int, originalMap map[string]string) map[stri
 			ogMature := ogSeq[cleavageSite:]
 			if len(ogSeq) < 200 && strings.Count(ogMature, "C") > 5 {
 				subMap[ogHeader] = ogSeq
+				patternMap[ogHeader] = cysPattern(ogSeq)
 			}
 		} else {
 			p("error:", header)
 		}
 	}
-	return subMap
+	return
 }
 
 func signalpGffList(gffFile string) map[string]int {
@@ -472,6 +478,31 @@ func signalpGffList(gffFile string) map[string]int {
 	return signalMap
 }
 
+func cysPattern(aaSeq string) (pattern string) {
+	var currentCysPos int
+	for i := 0; i < len(aaSeq); i++ {
+		aa := string(aaSeq[i])
+		if aa == "C" {
+			if i-currentCysPos == 1 {
+				pattern += "C"
+			} else if i-currentCysPos == 2 {
+				pattern += "XC"
+			} else {
+				if currentCysPos+i > 0 {
+					pattern += "-C"
+				} else {
+					pattern += "C"
+				}
+
+			}
+			currentCysPos = i
+
+		}
+
+	}
+	return
+}
+
 func silix(pepFileName string) (silixResults string) {
 
 	blastp(pepFileName, pepFileName, outDir, "blastallResults", false, 1e-3)
@@ -491,8 +522,13 @@ func silix(pepFileName string) (silixResults string) {
 	return
 }
 
-func runAll(inPep string, n int) (outPep string, numPep int) {
+func runAll(inPep string, n int) (outPep string, signalPseq, maturePattern map[string]string) {
+
+	// var numPep int
 	var bothResults map[string]bool
+
+	signalPseq = make(map[string]string)
+	maturePattern = make(map[string]string)
 
 	// var firstRoundFinalist string
 	blastResults := blastp(queryPep, inPep, outDir, "blastpResults", true, 1e-3)
@@ -516,9 +552,10 @@ func runAll(inPep string, n int) (outPep string, numPep int) {
 			}
 			signalPheaders := signalpGffList(newGFF)
 			p(len(signalPheaders), len(blastHmmerSeqs))
-			signalPseq := subsetSeqMap(signalPheaders, blastHmmerSeqs)
+			signalPseq, maturePattern = subsetSeqMap(signalPheaders, blastHmmerSeqs)
 			outPep = writeSeqMap(signalPseq, outDir, "round_"+strconv.Itoa(n))
-			numPep = len(signalPseq)
+			// numPep = len(signalPseq)
+			//  Here's a thought, instead of returning numPep, return map with header and pattern
 
 		}
 
@@ -526,21 +563,26 @@ func runAll(inPep string, n int) (outPep string, numPep int) {
 
 		signalPheaders := signalpGffList(signalPgff)
 		p(len(signalPheaders), len(blastHmmerSeqs))
-		signalPseq := subsetSeqMap(signalPheaders, blastHmmerSeqs)
+		signalPseq, maturePattern = subsetSeqMap(signalPheaders, blastHmmerSeqs)
 		outPep = writeSeqMap(signalPseq, outDir, "round_"+strconv.Itoa(n))
-		numPep = len(signalPseq)
+		// numPep = len(signalPseq)
 	} else {
 		p("Skipping signalP")
 		writeSeqMap(blastHmmerSeqs, outDir, "noSignalP"+strconv.Itoa(n))
 	}
 
 	// p(time.Now().Format("15:04:05 Mon Jan-02-2006"))
-	return outPep, numPep
+	return outPep, signalPseq, maturePattern
 }
 func main() {
 	ickTally := [2]int{}
-	var currentFinalist string
 	var numICK int
+	var currentFinalist string
+	var pepMap, patternMap map[string]string
+
+	// pepMap = make(map[string]string)
+	// patternMap = make(map[string]string)
+
 	// startingIter := 0
 	// currentOutName := "round_" + strconv.Itoa(startingIter)
 
@@ -554,11 +596,12 @@ func main() {
 
 		for i := 0; i < iterate; i++ {
 			if i == 0 {
-				currentFinalist, _ = runAll(ickDB, i)
+				currentFinalist, pepMap, patternMap = runAll(ickDB, i)
 				timeStatus("writing to: " + currentFinalist)
 			} else {
 				newDB := concatFasta(ickDB, currentFinalist, "newDB_"+strconv.Itoa(i))
-				currentFinalist, numICK = runAll(newDB, i)
+				currentFinalist, pepMap, patternMap = runAll(newDB, i)
+				numICK = len(pepMap)
 				if numICK > ickTally[0] {
 					ickTally[0] = numICK
 					ickTally[1] = 0
@@ -573,11 +616,13 @@ func main() {
 
 		}
 		if runSilix {
+			p(patternMap)
 			timeStatus(currentFinalist)
 			p(fileExists(currentFinalist))
 			if currentFinalist != "" && fileExists(currentFinalist) {
 				silixResults := silix(currentFinalist)
 				silixOutFile := outDir + "/silixOut.txt"
+
 				silixOutErr := ioutil.WriteFile(silixOutFile, []byte(silixResults), 0644)
 				if silixOutErr != nil {
 					log.Fatal(silixOutErr)
