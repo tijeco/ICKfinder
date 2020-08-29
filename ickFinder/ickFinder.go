@@ -518,10 +518,10 @@ func cysPattern(aaSeq string) (pattern string) {
 			currentCysPos = i
 
 		}
-		if string(pattern[0]) == "-" {
-			pattern = pattern[1:]
-		}
 
+	}
+	if string(pattern[0]) == "-" {
+		pattern = pattern[1:]
 	}
 	return
 }
