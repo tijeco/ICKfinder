@@ -500,29 +500,29 @@ func signalpGffList(gffFile string) map[string]int {
 
 func cysPattern(aaSeq string) (pattern string) {
 	var currentCysPos int
+	var firstCysFound bool
 	for i := 0; i < len(aaSeq); i++ {
 		aa := string(aaSeq[i])
 		if aa == "C" {
-			if i-currentCysPos == 1 {
-				pattern += "C"
-			} else if i-currentCysPos == 2 {
-				pattern += "XC"
-			} else {
-				if currentCysPos+i > 0 {
-					pattern += "-C"
-				} else {
+
+			if firstCysFound {
+				if i-currentCysPos == 1 {
 					pattern += "C"
+				} else if i-currentCysPos == 2 {
+					pattern += "XC"
+				} else {
+					pattern += "-C"
 				}
 
+			} else {
+				firstCysFound = true
+				pattern += "C"
 			}
 			currentCysPos = i
+		} // end checkCys
 
-		}
+	} // end for
 
-	}
-	if string(pattern[0]) == "-" {
-		pattern = pattern[1:]
-	}
 	return
 }
 
