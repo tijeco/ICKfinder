@@ -462,7 +462,7 @@ func subsetSeqMap(subset map[string]int, originalMap map[string]string) (subMap,
 			ogMature := ogSeq[cleavageSite:]
 			if len(ogSeq) < 200 && strings.Count(ogMature, "C") > 5 {
 				subMap[ogHeader] = ogSeq
-				patternMap[ogHeader] = cysPattern(ogSeq)
+				patternMap[ogHeader] = cysPattern(ogMature)
 			}
 		} else {
 			p("error:", header)
