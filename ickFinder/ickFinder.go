@@ -170,41 +170,52 @@ func willRun(command string) (ran bool) {
 
 func blastp(query, target, outDir, outName string, onlyOne bool, evalue float64) (blastTargets []string) {
 	var blastP string
-	// if willRun("makeblastdb") && willRun("blastp") {
-	// makeblastdb -in spiderICK.fasta  -dbtype prot
-	makeBlastDB := "makeblastdb -in " + target + " -dbtype prot"
-	makeBlastDBcmd := exec.Command("sh", "-c", makeBlastDB)
-	_, makeBlastDBerr := makeBlastDBcmd.Output()
-	timeStatus(makeBlastDB)
-	// p("running:", makeBlastDB)
-	if makeBlastDBerr != nil {
-		p(":(")
-		log.Fatal(makeBlastDBerr)
-	} else {
-		// p("WHOOP!", makeBlastDBstdout)
-		// -query Stegotoxin.protein.fa -db spiderICK.fasta -outfmt 6
-		if onlyOne {
-			blastP = "blastp -query " + query + " -db " + target + " -outfmt 6 -max_target_seqs 1 -evalue " + fmt.Sprintf("%f", evalue)
-		} else {
-			blastP = "blastp -query " + query + " -db " + target + " -outfmt 6 -evalue " + fmt.Sprintf("%f", evalue)
-		}
-
-		blastPcmd := exec.Command("sh", "-c", blastP)
-		blastPstdout, blastPerr := blastPcmd.Output()
+	blastOutFile := outDir + "/" + outName + ".txt"
+	if fileExists(blastOutFile) {
+		timeStatus(blastOutFile + " exists, opening it now")
+		blastPstdout, blastPerr := ioutil.ReadFile(blastOutFile)
 		if blastPerr != nil {
 			log.Fatal(blastPerr)
 		} else {
-			timeStatus(blastP)
-			// p("running", blastP)
-			// p("WHOOP!", blastPstdout)
 			blastTargets = targetFromBlast(string(blastPstdout))
-			blastOutFile := outDir + "/" + outName + ".txt"
-			blastOutErr := ioutil.WriteFile(blastOutFile, blastPstdout, 0644)
-			if blastOutErr != nil {
-				log.Fatal(blastOutErr)
-			}
 		}
+	} else {
+		// if willRun("makeblastdb") && willRun("blastp") {
+		// makeblastdb -in spiderICK.fasta  -dbtype prot
+		makeBlastDB := "makeblastdb -in " + target + " -dbtype prot"
+		makeBlastDBcmd := exec.Command("sh", "-c", makeBlastDB)
+		_, makeBlastDBerr := makeBlastDBcmd.Output()
+		timeStatus(makeBlastDB)
+		// p("running:", makeBlastDB)
+		if makeBlastDBerr != nil {
+			p(":(")
+			log.Fatal(makeBlastDBerr)
+		} else {
+			// p("WHOOP!", makeBlastDBstdout)
+			// -query Stegotoxin.protein.fa -db spiderICK.fasta -outfmt 6
+			if onlyOne {
+				blastP = "blastp -query " + query + " -db " + target + " -outfmt 6 -max_target_seqs 1 -evalue " + fmt.Sprintf("%f", evalue)
+			} else {
+				blastP = "blastp -query " + query + " -db " + target + " -outfmt 6 -evalue " + fmt.Sprintf("%f", evalue)
+			}
 
+			blastPcmd := exec.Command("sh", "-c", blastP)
+			blastPstdout, blastPerr := blastPcmd.Output()
+			if blastPerr != nil {
+				log.Fatal(blastPerr)
+			} else {
+				timeStatus(blastP)
+				// p("running", blastP)
+				// p("WHOOP!", blastPstdout)
+				blastTargets = targetFromBlast(string(blastPstdout))
+
+				blastOutErr := ioutil.WriteFile(blastOutFile, blastPstdout, 0644)
+				if blastOutErr != nil {
+					log.Fatal(blastOutErr)
+				}
+			}
+
+		}
 	}
 
 	// }
