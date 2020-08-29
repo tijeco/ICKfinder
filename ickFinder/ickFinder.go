@@ -69,7 +69,7 @@ func timeStatus(status string) {
 	p()
 }
 
-func logFatalErr(err error) {
+func logFatalErr(message string, err error) {
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -80,6 +80,15 @@ func checkDependencies(dependencies []string) (good2go bool) {
 		good2go = willRun(dependency)
 	}
 	return
+}
+
+func splitLines(s string) []string {
+	var lines []string
+	sc := bufio.NewScanner(strings.NewReader(s))
+	for sc.Scan() {
+		lines = append(lines, sc.Text())
+	}
+	return lines
 }
 
 func buildFasta(header string, seq bytes.Buffer) (record fasta) {
@@ -590,6 +599,7 @@ func main() {
 	var numICK int
 	var currentFinalist string
 	var pepMap, patternMap map[string]string
+	var silixData [][]string
 
 	// pepMap = make(map[string]string)
 	// patternMap = make(map[string]string)
@@ -627,16 +637,42 @@ func main() {
 
 		}
 		if runSilix {
+
 			p(patternMap)
 			timeStatus(currentFinalist)
 			p(fileExists(currentFinalist))
 			if currentFinalist != "" && fileExists(currentFinalist) {
 				silixResults := silix(currentFinalist)
-				silixOutFile := outDir + "/silixOut.txt"
+				silixOutFile := outDir + "/cluck.csv"
+				silixRows := splitLines(silixResults)
+				for _, line := range silixRows {
+					row := strings.Fields(line)
+					header := row[1]
+					if pattern, ok := patternMap[header]; ok {
+						row = append(row, pattern)
+						silixData = append(silixData, row)
+						//do something here
+					} else {
+						p(header, "not found")
+					}
+
+				}
 
 				silixOutErr := ioutil.WriteFile(silixOutFile, []byte(silixResults), 0644)
 				if silixOutErr != nil {
 					log.Fatal(silixOutErr)
+				}
+
+				silixCSV, silixCSVerr := os.Create(silixOutFile)
+				logFatalErr("Cannot create file", silixCSVerr)
+				defer silixCSV.Close()
+
+				writer := csv.NewWriter(silixCSV)
+				defer writer.Flush()
+
+				for _, value := range silixData {
+					writeErr := writer.Write(value)
+					logFatalErr("Cannot write to file", writeErr)
 				}
 				// p(silixResults)
 			}
