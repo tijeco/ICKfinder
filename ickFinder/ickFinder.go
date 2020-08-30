@@ -461,7 +461,7 @@ func subsetSeqMap(subset map[string]int, originalMap map[string]string) (subMap,
 			ogSeq := originalMap[ogHeader]
 			ogMature := ogSeq[cleavageSite:]
 			if len(ogSeq) < 200 && strings.Count(ogMature, "C") > 5 {
-				subMap[ogHeader] = ogSeq
+				subMap[ogHeader] = ogMature
 				patternMap[ogHeader] = cysPattern(ogMature)
 			}
 		} else {
@@ -653,6 +653,9 @@ func main() {
 					header := row[1]
 					if pattern, ok := patternMap[header]; ok {
 						row = append(row, pattern)
+						if maturePep, ok := pepMap[header]; ok {
+							row = append(row, maturePep)
+						}
 						silixData = append(silixData, row)
 						//do something here
 					} else {
